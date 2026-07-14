@@ -175,7 +175,7 @@
             border: 1px solid #dee2e6;
             border-radius: 8px;
             padding: 15px;
-            display: none; /* 初期は非表示 */
+            display: none;
         }
         .step-item {
             display: flex;
@@ -206,7 +206,7 @@
         
         .result-links { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
         .result-links a {
-            display: none; /* 初期は非表示 */
+            display: none;
             text-align: center; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; text-decoration: none;
         }
         #linkAudio { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; }
@@ -302,13 +302,11 @@
     const recModeSelect = document.getElementById('recMode');
     const templateGroup = document.getElementById('templateGroup');
     
-    // UI出し分け
     recModeSelect.addEventListener('change', (e) => {
         if(e.target.value === "3") templateGroup.style.display = "block";
         else templateGroup.style.display = "none";
     });
     
-    // モーダル関連
     const configBtn = document.getElementById('configBtn');
     const configModal = document.getElementById('configModal');
     const gasUrlInput = document.getElementById('gasUrlInput');
@@ -377,7 +375,7 @@
     function setStepStatus(stepNum, status) {
         const item = document.getElementById(`step${stepNum}`);
         const text = document.getElementById(`text${stepNum}`);
-        item.className = 'step-item'; // reset
+        item.className = 'step-item'; 
         
         if (status === 'active') {
             item.classList.add('step-active');
@@ -388,7 +386,7 @@
         }
     }
 
-    // --- 録音およびデータ送信機能 (3-Step API対応) ---
+    // --- 録音およびデータ送信機能 (爆速3-Step API対応) ---
     startBtn.addEventListener('click', async () => {
         if (!savedGasUrl) {
             alert('録音を開始する前に、右上の⚙️ボタンからご自身のGAS URLを設定してください。');
@@ -400,10 +398,16 @@
             statusDiv.textContent = "マイクを準備中...";
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // 端末依存を吸収（iOSはmp4/aac、Androidはwebm等）
-            let options = { mimeType: 'audio/webm' };
+            // 端末依存を吸収しつつ、AIが認識できるギリギリの「32kbps」に圧縮
+            let options = { 
+                mimeType: 'audio/webm',
+                audioBitsPerSecond: 32000 
+            };
             if (!MediaRecorder.isTypeSupported('audio/webm')) {
-                options = { mimeType: 'audio/mp4' };
+                options = { 
+                    mimeType: 'audio/mp4',
+                    audioBitsPerSecond: 32000
+                };
             }
 
             mediaRecorder = new MediaRecorder(stream, options);
@@ -421,12 +425,11 @@
                 const mode = recModeSelect.value;
                 const template = document.getElementById('recTemplate').value;
 
-                // UIの切り替え
                 document.getElementById('stepContainer').style.display = 'block';
                 document.getElementById('linkAudio').style.display = 'none';
                 document.getElementById('linkDoc').style.display = 'none';
                 
-                // Step 1: 音声保存（最速）
+                // --- Step 1: 音声保存（最速） ---
                 setStepStatus(1, 'active');
                 statusDiv.textContent = "Googleドライブへ保存中...";
 
@@ -465,10 +468,9 @@
                         return;
                     }
 
-                    // モード1ならここで終了
                     if (mode === "1") { resetButtons(); return; }
 
-                    // Step 2: 文字起こし (非同期)
+                    // --- Step 2: 文字起こし (非同期) ---
                     setStepStatus(2, 'active');
                     statusDiv.textContent = "AIが音声を文字起こし中...🧠";
                     
@@ -502,17 +504,17 @@
                         return;
                     }
 
-                    // モード2ならここで終了
                     if (mode === "2") { resetButtons(); return; }
 
-                    // Step 3: 議事録生成 (超高速)
+                    // --- Step 3: 議事録生成 (ドライブ操作スキップで爆速化) ---
                     setStepStatus(3, 'active');
                     statusDiv.textContent = "テンプレートに合わせて議事録を作成中...📝";
                     
                     const step3Payload = {
                         action: "summarize",
-                        docId: step2Result.docId,
-                        templateType: template
+                        transcriptionText: step2Result.transcriptionText, 
+                        templateType: template,
+                        originalName: meetingName
                     };
 
                     try {
@@ -526,7 +528,7 @@
                         if (step3Result.status !== "success") throw new Error(step3Result.message);
                         
                         setStepStatus(3, 'complete');
-                        document.getElementById('linkDoc').href = step3Result.docUrl; // URL上書き
+                        document.getElementById('linkDoc').href = step3Result.docUrl; 
                         statusDiv.textContent = "🎉 全ての処理が完了しました！";
                         
                     } catch (error) {
@@ -541,7 +543,6 @@
             mediaRecorder.start();
             statusDiv.textContent = "🎙 録音中... (画面は閉じないでください)";
             
-            // ボタンの出し分け
             startBtn.style.display = "none";
             stopBtn.style.display = "block";
             stopBtn.disabled = false;
@@ -554,13 +555,6 @@
             statusDiv.textContent = "";
             alert('マイクの許可がないか、デバイスエラーが発生しました: ' + err.message);
         }
-    });
-
-    stopBtn.addEventListener('click', () => {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-        stopBtn.disabled = true;
-        stopBtn.textContent = "⏳ 処理中... お待ちください";
     });
 
     function resetButtons() {
