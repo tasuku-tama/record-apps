@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>レコーダーアプリ</title>
+    <style>
+        /* 🎨 1画面確定（スクロール絶対禁止）デザイン */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100dvh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .container {
+            background-color: #fff;
+            padding: 30px 24px;
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ⚙️ 設定ボタンの配置 */
+        .header-actions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        #configBtn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+        #configBtn:active { transform: rotate(45deg) scale(0.9); }
+        
+        h2 { 
+            margin-top: 0;
+            margin-bottom: 25px; 
+            color: #2c3e50; 
+            font-size: 26px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        input[type="text"], select {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+            background-color: #fff;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #3498db;
+        }
+        
+        #speechBtn {
+            width: 55px;
+            padding: 0;
+            background-color: #2ecc71;
+            color: white;
+            font-size: 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        #speechBtn:active { transform: scale(0.95); }
+        #speechBtn.recognizing { background-color: #e74c3c; } 
+        #speechBtn.recognizing:hover { background-color: #c0392b; }
+        #speechBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        /* ボタンデザイン */
+        button.action-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button.action-btn:active { transform: scale(0.98); }
+        
+        #startBtn { background-color: #3498db; color: white; margin-top: 10px; }
+        #startBtn:hover { background-color: #2980b9; }
+        #startBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; box-shadow: none; }
+        
+        #stopBtn { background-color: #e74c3c; color: white; display: none; }
+        #stopBtn:hover { background-color: #c0392b; }
+        #stopBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; box-shadow: none; }
+
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #e67e22;
+            font-size: 14px;
+            min-height: 20px;
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        /* 🔒 URL設定用モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .modal h3 { margin-top: 0; color: #2c3e50; }
+        .modal p { font-size: 13px; color: #7f8c8d; line-height: 1.5; }
+        .modal input { width: 100%; margin-bottom: 15px; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-buttons button { flex: 1; padding: 12px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        #saveConfigBtn { background-color: #2ecc71; color: white; }
+        #closeConfigBtn { background-color: #e74c3c; color: white; }
+
+        /* 🌟 AI処理ステータス用UI */
+        .step-container {
+            margin-top: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            display: none; /* 初期は非表示 */
+        }
+        .step-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+            background-color: #e9ecef;
+            color: #adb5bd;
+            flex-shrink: 0;
+        }
+        .step-active .step-badge { background-color: #0d6efd; color: white; }
+        .step-active { color: #0d6efd; font-weight: bold; }
+        .step-complete .step-badge { background-color: #198754; color: white; }
+        .step-complete { color: #198754; font-weight: bold; }
+        
+        .result-links { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .result-links a {
+            display: none; /* 初期は非表示 */
+            text-align: center; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; text-decoration: none;
+        }
+        #linkAudio { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; }
+        #linkDoc { background-color: #e8f4fd; color: #0d6efd; border: 1px solid #b6d4fe; }
+
+        @media (min-width: 500px) {
+            body { padding: 20px; height: 100vh; overflow: auto; }
+            .container { height: auto; max-width: 500px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-actions">
+        <button id="configBtn" title="設定">⚙️</button>
+    </div>
+
+    <h2>🎙 レコーダーアプリ</h2>
+    
+    <div class="input-group">
+        <label for="meetingName">会議名・内容（ファイル名になります）</label>
+        <div class="input-row">
+            <input type="text" id="meetingName" placeholder="例：〇〇様 担当者会議">
+            <button id="speechBtn" title="音声で入力">🎤</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label for="recMode">AI処理モード</label>
+        <select id="recMode">
+            <option value="1">① 録音保存のみ</option>
+            <option value="2">② 録音 ＋ AI文字起こし</option>
+            <option value="3" selected>③ 録音 ＋ 文字起こし ＋ 議事録生成</option>
+        </select>
+    </div>
+
+    <div class="input-group" id="templateGroup">
+        <label for="recTemplate">議事録テンプレート (モード③用)</label>
+        <select id="recTemplate">
+            <option value="サービス担当者会議録">サービス担当者会議録</option>
+            <option value="汎用議事録">汎用議事録</option>
+            <option value="苦情・要望等受付">苦情・要望等受付</option>
+        </select>
+    </div>
+    
+    <button id="startBtn" class="action-btn">🔴 録音開始</button>
+    <button id="stopBtn" class="action-btn">⏹ 録音停止・AI処理開始</button>
+    
+    <div id="status">待機中</div>
+
+    <div id="stepContainer" class="step-container">
+        <div class="step-item" id="step1">
+            <div class="step-badge" id="badge1">1</div>
+            <span id="text1">Step 1: 音声データを保存</span>
+        </div>
+        <div class="step-item" id="step2">
+            <div class="step-badge" id="badge2">2</div>
+            <span id="text2">Step 2: AI一言一句文字起こし</span>
+        </div>
+        <div class="step-item" id="step3">
+            <div class="step-badge" id="badge3">3</div>
+            <span id="text3">Step 3: テンプレートで議事録作成</span>
+        </div>
+        <div class="result-links">
+            <a id="linkAudio" href="#" target="_blank">🎵 音声ファイルを開く</a>
+            <a id="linkDoc" href="#" target="_blank">📄 作成されたドキュメントを開く</a>
+        </div>
+    </div>
+</div>
+
+<div id="configModal" class="modal">
+    <div class="modal-content">
+        <h3>⚙️ 初期設定</h3>
+        <p>ご自身のGoogle Apps Script (GAS) でデプロイした「ウェブアプリのURL」を入力してください。音声データは該当のGoogleドライブに保存されます。</p>
+        <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="modal-buttons">
+            <button id="saveConfigBtn">保存する</button>
+            <button id="closeConfigBtn">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const speechBtn = document.getElementById('speechBtn');
+    const meetingNameInput = document.getElementById('meetingName');
+    const statusDiv = document.getElementById('status');
+    const recModeSelect = document.getElementById('recMode');
+    const templateGroup = document.getElementById('templateGroup');
+    
+    // UI出し分け
+    recModeSelect.addEventListener('change', (e) => {
+        if(e.target.value === "3") templateGroup.style.display = "block";
+        else templateGroup.style.display = "none";
+    });
+    
+    // モーダル関連
+    const configBtn = document.getElementById('configBtn');
+    const configModal = document.getElementById('configModal');
+    const gasUrlInput = document.getElementById('gasUrlInput');
+    const saveConfigBtn = document.getElementById('saveConfigBtn');
+    const closeConfigBtn = document.getElementById('closeConfigBtn');
+
+    let savedGasUrl = localStorage.getItem('user_gas_url') || "";
+    gasUrlInput.value = savedGasUrl;
+
+    if (!savedGasUrl) {
+        statusDiv.textContent = "⚠️ 右上の⚙️ボタンからGASのURLを設定してください";
+    }
+
+    configBtn.addEventListener('click', () => configModal.style.display = 'flex');
+    closeConfigBtn.addEventListener('click', () => configModal.style.display = 'none');
+    
+    saveConfigBtn.addEventListener('click', () => {
+        const url = gasUrlInput.value.trim();
+        if (!url || !url.startsWith('https://script.google.com')) {
+            alert('正しいGASのウェブアプリURLを入力してください（最後が /exec で終わるもの）');
+            return;
+        }
+        localStorage.setItem('user_gas_url', url);
+        savedGasUrl = url;
+        configModal.style.display = 'none';
+        statusDiv.textContent = "✅ GASのURLを設定しました";
+    });
+
+    // --- 音声入力機能 (🎤ボタン) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        speechBtn.style.display = 'none'; 
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.interimResults = false;
+        let isRecognizing = false;
+
+        speechBtn.addEventListener('click', () => {
+            if (isRecognizing) {
+                recognition.abort(); 
+                statusDiv.textContent = "🛑 音声入力をキャンセルしました";
+            } else {
+                recognition.start(); 
+                statusDiv.textContent = "🎤 会議名を喋ってください...";
+                isRecognizing = true;
+                speechBtn.textContent = "⏹";
+                speechBtn.classList.add('recognizing');
+            }
+        });
+
+        recognition.onresult = (event) => {
+            meetingNameInput.value = event.results[0][0].transcript;
+            statusDiv.textContent = "🔊 音声入力を完了しました";
+        };
+
+        recognition.onend = () => {
+            isRecognizing = false;
+            speechBtn.textContent = "🎤";
+            speechBtn.classList.remove('recognizing');
+            if (statusDiv.textContent === "🎤 会議名を喋ってください...") statusDiv.textContent = "";
+        };
+    }
+
+    // --- インジケーター制御関数 ---
+    function setStepStatus(stepNum, status) {
+        const item = document.getElementById(`step${stepNum}`);
+        const text = document.getElementById(`text${stepNum}`);
+        item.className = 'step-item'; // reset
+        
+        if (status === 'active') {
+            item.classList.add('step-active');
+            text.innerHTML = text.innerHTML.replace('...', '中... ⏳');
+        } else if (status === 'complete') {
+            item.classList.add('step-complete');
+            text.innerHTML = text.innerHTML.replace('中... ⏳', ' 完了！ ✅').replace('...', ' 完了！ ✅');
+        }
+    }
+
+    // --- 録音およびデータ送信機能 (3-Step API対応) ---
+    startBtn.addEventListener('click', async () => {
+        if (!savedGasUrl) {
+            alert('録音を開始する前に、右上の⚙️ボタンからご自身のGAS URLを設定してください。');
+            configModal.style.display = 'flex';
+            return;
+        }
+
+        try {
+            statusDiv.textContent = "マイクを準備中...";
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // 端末依存を吸収（iOSはmp4/aac、Androidはwebm等）
+            let options = { mimeType: 'audio/webm' };
+            if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                options = { mimeType: 'audio/mp4' };
+            }
+
+            mediaRecorder = new MediaRecorder(stream, options);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) audioChunks.push(event.data);
+            };
+
+            // ⏹ 録音停止時の非同期3ステップ処理
+            mediaRecorder.onstop = async () => {
+                statusDiv.textContent = "データを準備中...";
+                const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                const meetingName = meetingNameInput.value.trim() || "名称未設定会議";
+                const mode = recModeSelect.value;
+                const template = document.getElementById('recTemplate').value;
+
+                // UIの切り替え
+                document.getElementById('stepContainer').style.display = 'block';
+                document.getElementById('linkAudio').style.display = 'none';
+                document.getElementById('linkDoc').style.display = 'none';
+                
+                // Step 1: 音声保存（最速）
+                setStepStatus(1, 'active');
+                statusDiv.textContent = "Googleドライブへ保存中...";
+
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64Data = reader.result.split(',')[1]; 
+
+                    const step1Payload = {
+                        action: "uploadAudio",
+                        audio: base64Data,
+                        mimeType: mediaRecorder.mimeType,
+                        userMemo: meetingName
+                    };
+
+                    let step1Result;
+                    try {
+                        const response = await fetch(savedGasUrl, { 
+                            method: 'POST', 
+                            body: JSON.stringify(step1Payload),
+                            headers: { 'Content-Type': 'text/plain' }
+                        });
+                        step1Result = await response.json();
+                        
+                        if (step1Result.status !== "success") throw new Error(step1Result.message);
+                        
+                        setStepStatus(1, 'complete');
+                        document.getElementById('linkAudio').href = step1Result.audioUrl;
+                        document.getElementById('linkAudio').style.display = 'block';
+                        statusDiv.textContent = "音声の保存が完了しました！";
+                        
+                    } catch (error) {
+                        console.error(error);
+                        statusDiv.textContent = "❌ Step1 エラー: " + error.message;
+                        resetButtons();
+                        return;
+                    }
+
+                    // モード1ならここで終了
+                    if (mode === "1") { resetButtons(); return; }
+
+                    // Step 2: 文字起こし (非同期)
+                    setStepStatus(2, 'active');
+                    statusDiv.textContent = "AIが音声を文字起こし中...🧠";
+                    
+                    const step2Payload = {
+                        action: "transcribe",
+                        fileId: step1Result.fileId,
+                        baseName: step1Result.baseName,
+                        mimeType: step1Result.mimeType
+                    };
+
+                    let step2Result;
+                    try {
+                        const response = await fetch(savedGasUrl, { 
+                            method: 'POST', 
+                            body: JSON.stringify(step2Payload),
+                            headers: { 'Content-Type': 'text/plain' }
+                        });
+                        step2Result = await response.json();
+                        
+                        if (step2Result.status !== "success") throw new Error(step2Result.message);
+                        
+                        setStepStatus(2, 'complete');
+                        document.getElementById('linkDoc').href = step2Result.docUrl;
+                        document.getElementById('linkDoc').style.display = 'block';
+                        statusDiv.textContent = "文字起こしが完了しました！";
+                        
+                    } catch (error) {
+                        console.error(error);
+                        statusDiv.textContent = "❌ Step2 エラー: " + error.message;
+                        resetButtons();
+                        return;
+                    }
+
+                    // モード2ならここで終了
+                    if (mode === "2") { resetButtons(); return; }
+
+                    // Step 3: 議事録生成 (超高速)
+                    setStepStatus(3, 'active');
+                    statusDiv.textContent = "テンプレートに合わせて議事録を作成中...📝";
+                    
+                    const step3Payload = {
+                        action: "summarize",
+                        docId: step2Result.docId,
+                        templateType: template
+                    };
+
+                    try {
+                        const response = await fetch(savedGasUrl, { 
+                            method: 'POST', 
+                            body: JSON.stringify(step3Payload),
+                            headers: { 'Content-Type': 'text/plain' }
+                        });
+                        const step3Result = await response.json();
+                        
+                        if (step3Result.status !== "success") throw new Error(step3Result.message);
+                        
+                        setStepStatus(3, 'complete');
+                        document.getElementById('linkDoc').href = step3Result.docUrl; // URL上書き
+                        statusDiv.textContent = "🎉 全ての処理が完了しました！";
+                        
+                    } catch (error) {
+                        console.error(error);
+                        statusDiv.textContent = "❌ Step3 エラー: " + error.message;
+                    }
+                    
+                    resetButtons();
+                };
+            };
+
+            mediaRecorder.start();
+            statusDiv.textContent = "🎙 録音中... (画面は閉じないでください)";
+            
+            // ボタンの出し分け
+            startBtn.style.display = "none";
+            stopBtn.style.display = "block";
+            stopBtn.disabled = false;
+            meetingNameInput.disabled = true; 
+            recModeSelect.disabled = true;
+            document.getElementById('recTemplate').disabled = true;
+            if (SpeechRecognition) speechBtn.disabled = true;
+
+        } catch (err) {
+            statusDiv.textContent = "";
+            alert('マイクの許可がないか、デバイスエラーが発生しました: ' + err.message);
+        }
+    });
+
+    stopBtn.addEventListener('click', () => {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        stopBtn.disabled = true;
+        stopBtn.textContent = "⏳ 処理中... お待ちください";
+    });
+
+    function resetButtons() {
+        startBtn.style.display = "block";
+        startBtn.disabled = false;
+        stopBtn.style.display = "none";
+        stopBtn.textContent = "⏹ 録音停止・AI処理開始";
+        meetingNameInput.disabled = false; 
+        recModeSelect.disabled = false;
+        document.getElementById('recTemplate').disabled = false;
+        if (SpeechRecognition) speechBtn.disabled = false;
+    }
+</script>
+
+</body>
+</html>
