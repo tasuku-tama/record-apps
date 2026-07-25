@@ -5,569 +5,1699 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>レコーダーアプリ</title>
     <style>
-        /* 🎨 1画面確定（スクロール絶対禁止）デザイン */
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
+        /* ==========================================
+           🎨 ベース設定 ＆ レイアウト
+           ========================================== */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background-color: #f8f9fa;
+            color: #495057;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100dvh;
-            overflow: hidden;
-            position: relative;
+            min-height: 100dvh;
         }
-        
-        .container {
-            background-color: #fff;
-            padding: 30px 24px;
+
+        .app-container {
+            background-color: #ffffff;
             width: 100%;
-            height: 100dvh;
+            max-width: 480px;
+            min-height: 100dvh;
+            padding: 40px 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            overflow: hidden;
             position: relative;
+            box-sizing: border-box;
         }
-
-        /* ⚙️ 設定ボタンの配置 */
-        .header-actions {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-        #configBtn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-            transition: transform 0.2s;
-        }
-        #configBtn:active { transform: rotate(45deg) scale(0.9); }
-        
-        h2 { 
-            margin-top: 0;
-            margin-bottom: 25px; 
-            color: #2c3e50; 
-            font-size: 26px;
-        }
-        
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        .input-row {
-            display: flex;
-            gap: 10px;
-        }
-        
-        input[type="text"], select {
-            flex: 1;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-            width: 100%;
-            background-color: #fff;
-        }
-        input[type="text"]:focus, select:focus {
-            border-color: #3498db;
-        }
-        
-        #speechBtn {
-            width: 55px;
-            padding: 0;
-            background-color: #2ecc71;
-            color: white;
-            font-size: 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        #speechBtn:active { transform: scale(0.95); }
-        #speechBtn.recognizing { background-color: #e74c3c; } 
-        #speechBtn.recognizing:hover { background-color: #c0392b; }
-        #speechBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-
-        /* ボタンデザイン */
-        button.action-btn {
-            width: 100%;
-            padding: 18px;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        button.action-btn:active { transform: scale(0.98); }
-        
-        #startBtn { background-color: #3498db; color: white; margin-top: 10px; }
-        #startBtn:hover { background-color: #2980b9; }
-        #startBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; box-shadow: none; }
-        
-        #stopBtn { background-color: #e74c3c; color: white; display: none; }
-        #stopBtn:hover { background-color: #c0392b; }
-        #stopBtn:disabled { background-color: #bdc3c7; cursor: not-allowed; box-shadow: none; }
-
-        #status {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #e67e22;
-            font-size: 14px;
-            min-height: 20px;
-            margin-bottom: 0;
-            text-align: center;
-        }
-
-        /* 🔒 URL設定用モーダル */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 450px;
-            text-align: left;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .modal h3 { margin-top: 0; color: #2c3e50; }
-        .modal p { font-size: 13px; color: #7f8c8d; line-height: 1.5; }
-        .modal input { width: 100%; margin-bottom: 15px; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px; }
-        .modal-buttons { display: flex; gap: 10px; }
-        .modal-buttons button { flex: 1; padding: 12px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        #saveConfigBtn { background-color: #2ecc71; color: white; }
-        #closeConfigBtn { background-color: #e74c3c; color: white; }
-
-        /* 🌟 AI処理ステータス用UI */
-        .step-container {
-            margin-top: 15px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            display: none;
-        }
-        .step-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #6c757d;
-        }
-        .step-item:last-child { margin-bottom: 0; }
-        .step-badge {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 12px;
-            margin-right: 10px;
-            background-color: #e9ecef;
-            color: #adb5bd;
-            flex-shrink: 0;
-        }
-        .step-active .step-badge { background-color: #0d6efd; color: white; }
-        .step-active { color: #0d6efd; font-weight: bold; }
-        .step-complete .step-badge { background-color: #198754; color: white; }
-        .step-complete { color: #198754; font-weight: bold; }
-        
-        .result-links { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .result-links a {
-            display: none;
-            text-align: center; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; text-decoration: none;
-        }
-        #linkAudio { background-color: #f1f3f5; color: #495057; border: 1px solid #ced4da; }
-        #linkDoc { background-color: #e8f4fd; color: #0d6efd; border: 1px solid #b6d4fe; }
 
         @media (min-width: 500px) {
-            body { padding: 20px; height: 100vh; overflow: auto; }
-            .container { height: auto; max-width: 500px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 40px; }
+            .app-container {
+                min-height: auto;
+                height: 90vh;
+                border-radius: 32px;
+                overflow-y: auto;
+            }
+        }
+
+        /* ==========================================
+           🎨 ヘッダー ＆ ボタン
+           ========================================== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #212529;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-actions { position: relative; display: flex; align-items: center; }
+
+        /* 🌟【見た目調整対応・新設】：
+           ヘッダーの「⋮」ボタンから開くドロップダウンメニュー。
+           手動再開・診断情報・設定の3項目をここに集約する。
+           他のパネル（recovery-panel系）とは別の見た目にし、
+           「ヘッダー直下に浮くメニュー」であることが分かるようにした。 */
+        .header-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 180px;
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            padding: 6px;
+            z-index: 100;
+        }
+        .header-menu.open {
+            display: block;
+        }
+        .header-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .header-menu-item:hover {
+            background-color: #f1f3f5;
+        }
+        .header-menu-icon {
+            font-size: 15px;
+            width: 20px;
+            text-align: center;
+        }
+        body.recording-active .header-menu {
+            background-color: #1c1e22;
+            border-color: #3a3d44;
+        }
+        body.recording-active .header-menu-item {
+            color: #d0d3d8;
+        }
+        body.recording-active .header-menu-item:hover {
+            background-color: #2a2d33;
+        }
+        /* 🌟 メニュー展開中は「⋮」ボタンも他のアイコンボタン同様
+           active-panel と同じ強調色にする。 */
+        #headerMenuBtn.active-panel {
+            background: #e7f5ff;
+            color: #4dabf7;
+        }
+
+        .btn-icon {
+            background: #f1f3f5; border: none; width: 40px; height: 40px;
+            border-radius: 50%; font-size: 18px; cursor: pointer;
+            transition: all 0.2s ease; display: flex; justify-content: center; align-items: center;
+        }
+        .btn-icon:hover { background: #e9ecef; transform: scale(1.05); }
+
+        .btn-pill {
+            background: #fff; border: 2px solid #e9ecef; padding: 8px 16px;
+            border-radius: 20px; font-size: 13px; font-weight: bold; color: #495057;
+            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-pill:hover { border-color: #fab005; color: #fab005; background: #fff9db; }
+
+        /* ==========================================
+           🎨 入力フォーム ＆ 音声入力ボタン
+           ========================================== */
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #868e96;
+        }
+        input[type="text"], select {
+            width: 100%; padding: 16px; border: 2px solid #f1f3f5; border-radius: 16px;
+            font-size: 16px; color: #495057; background-color: #f8f9fa;
+            transition: all 0.2s ease; box-sizing: border-box; outline: none;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #74c0fc; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(116, 192, 252, 0.15);
+        }
+
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-with-icon input {
+            padding-right: 50px;
+        }
+        .mini-mic-btn {
+            position: absolute;
+            right: 8px;
+            background: #fff;
+            border: 2px solid #f1f3f5;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #495057;
+        }
+        .mini-mic-btn:hover { background: #f8f9fa; border-color: #dee2e6; }
+        .mini-mic-btn.listening {
+            background: #fa5252;
+            border-color: #fa5252;
+            color: white;
+            animation: pulseMini 1.5s infinite;
+        }
+        @keyframes pulseMini {
+            0% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(250, 82, 82, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0); }
+        }
+
+        /* ==========================================
+           🎨 メイン録音エリア
+           ========================================== */
+        .record-area {
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; margin: 40px 0;
+        }
+        .record-btn {
+            width: 120px; height: 120px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, #74c0fc, #4dabf7); color: white;
+            font-size: 48px; cursor: pointer; box-shadow: 0 10px 20px rgba(77, 171, 247, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .record-btn:active { transform: scale(0.9); }
+        .record-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ff8787, #fa5252);
+            box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(250, 82, 82, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0); }
+        }
+
+        .status-text {
+            margin-top: 24px; font-size: 16px; font-weight: 600;
+            color: #868e96; text-align: center; min-height: 24px;
+        }
+
+        .elapsed-time {
+            margin-top: 8px; font-size: 13px; color: #adb5bd; text-align: center;
+        }
+
+        .wake-lock-warning {
+            display: none;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #fff9db;
+            border: 1px solid #fab005;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #7c5c00;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .wake-lock-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #adb5bd;
+            text-align: center;
+            line-height: 1.6;
+        }
+        body.recording-active .wake-lock-note {
+            color: #6a6f78;
+        }
+
+        /* ==========================================
+           🔋 録音中の省電力表示（ダークトーン）
+           Wake Lockで画面を点灯させ続ける分、表示自体の消費電力を
+           抑えるため、録音中は背景を暗いトーンに切り替える。
+           有機ELディスプレイでは黒に近い表示ほど消費電力が下がるため、
+           特にモバイル端末での長時間録音時に効果が期待できる。
+           ========================================== */
+        body.recording-active {
+            background-color: #16181c;
+            transition: background-color 0.4s ease;
+        }
+        body.recording-active .app-container {
+            background-color: #1c1e22;
+            color: #d0d3d8;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+        body.recording-active .header h2 {
+            color: #e8eaed;
+        }
+        body.recording-active .btn-icon,
+        body.recording-active .btn-pill {
+            background: #2a2d33;
+            color: #d0d3d8;
+            border-color: #3a3d44;
+        }
+        body.recording-active .input-group label {
+            color: #8a8f98;
+        }
+        body.recording-active input[type="text"],
+        body.recording-active select {
+            background-color: #2a2d33;
+            border-color: #3a3d44;
+            color: #d0d3d8;
+        }
+        body.recording-active .status-text {
+            color: #8a8f98;
+        }
+        body.recording-active .progress-container {
+            background-color: #2a2d33;
+        }
+        body.recording-active .wake-lock-warning {
+            background: #3a2f00;
+            border-color: #7c5c00;
+            color: #ffd43b;
+        }
+
+        /* ==========================================
+           🌑 疑似スリープオーバーレイ
+           実際のOSスリープはWake Lockでキャンセルし続けつつ、
+           一定時間操作がなければ画面をほぼ黒くフェードさせることで、
+           見た目上は消灯したように見せ、体感的な省電力感を出す。
+           有機ELディスプレイでは黒表示に近いほど実消費電力も下がる。
+           タップすると即座に解除される。
+           ========================================== */
+        .pseudo-sleep-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #000000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 2.5s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .pseudo-sleep-overlay.active {
+            opacity: 0.97;
+            pointer-events: auto;
+        }
+        .pseudo-sleep-overlay .sleep-indicator {
+            color: #3a3d44;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.8;
+            opacity: 0;
+            transition: opacity 2.5s ease 0.5s;
+        }
+        .pseudo-sleep-overlay.active .sleep-indicator {
+            opacity: 1;
+        }
+        .pseudo-sleep-overlay .sleep-rec-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #7a2020;
+            margin-right: 6px;
+            animation: sleepPulse 3s infinite;
+        }
+        @keyframes sleepPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.9; }
+        }
+
+        /* ==========================================
+           🎨 進捗表示 ＆ パネル群
+           ========================================== */
+        .progress-container {
+            display: none; background-color: #f8f9fa; padding: 24px;
+            border-radius: 20px; margin-top: 20px;
+        }
+        .progress-title {
+            font-size: 14px; font-weight: 700; color: #495057;
+            margin-bottom: 16px; text-align: center;
+        }
+        .dots-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .dot {
+            width: 18px; height: 18px; border-radius: 50%;
+            background-color: #dee2e6; transition: all 0.4s ease;
+        }
+        .dot.processing {
+            background-color: #4dabf7; box-shadow: 0 0 8px rgba(77, 171, 247, 0.6);
+            animation: bounce 1s infinite alternate;
+        }
+        .dot.complete { background-color: #40c057; transform: scale(1.1); }
+        .dot.error { background-color: #fab005; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-4px); } }
+
+        .recovery-panel {
+            display: none; margin-top: 20px; padding: 20px;
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 20px;
+        }
+        .recovery-panel h4 { margin: 0 0 10px 0; font-size: 15px; }
+        .recovery-panel.help h4 { color: #fab005; }
+        .recovery-panel.settings h4 { color: #4dabf7; }
+        
+        .recovery-btn {
+            width: 100%; padding: 14px; margin-top: 10px;
+            background-color: #fff; border: 2px solid #f1f3f5;
+            border-radius: 12px; font-weight: bold; color: #495057;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .recovery-panel.help .recovery-btn:hover { border-color: #fab005; color: #fab005; }
+        .recovery-panel.settings .recovery-btn:hover { border-color: #4dabf7; color: #4dabf7; background: #e7f5ff; }
+        
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ==========================================
+           🎨 診断情報パネル（finishReason等の確認用）
+           🌟 新設（診断ログ強化対応）：
+           文字起こし・議事録生成の処理結果（finishReason・トークン数等）を
+           表示し、そのままAIへの不具合報告としてコピペできるようにするパネル。
+           他の recovery-panel（お助けモード・設定）と見た目のトーンを
+           揃えつつ、テキストエリアの高さは詰めすぎず・伸ばしすぎずの
+           バランスにしている（アプリ全体の縦スクロール量が
+           増えすぎないよう配慮）。
+           ========================================== */
+        .recovery-panel.diagnostics {
+            display: none;
+        }
+        .recovery-panel.diagnostics h4 {
+            color: #868e96;
+        }
+        .diagnostics-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            height: 160px;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            padding: 12px;
+            border: 2px solid #f1f3f5;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            color: #495057;
+            resize: vertical;
+            white-space: pre;
+        }
+        body.recording-active .diagnostics-textarea {
+            background-color: #2a2d33;
+            border-color: #3a3d44;
+            color: #d0d3d8;
+        }
+        .recovery-panel.diagnostics .recovery-btn:hover {
+            border-color: #868e96; color: #495057; background: #f1f3f5;
+        }
+        /* 🌟 診断アイコンボタンが押されている（パネル表示中）ことが
+           視覚的に分かるよう、他のアイコンボタンと差別化する状態色。 */
+        .btn-icon.active-panel {
+            background: #e7f5ff;
+            color: #4dabf7;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-actions">
-        <button id="configBtn" title="設定">⚙️</button>
-    </div>
-
-    <h2>🎙 レコーダーアプリ</h2>
-    
-    <div class="input-group">
-        <label for="meetingName">会議名・内容（ファイル名になります）</label>
-        <div class="input-row">
-            <input type="text" id="meetingName" placeholder="例：〇〇様 担当者会議">
-            <button id="speechBtn" title="音声で入力">🎤</button>
+<div class="app-container">
+    <div class="header">
+        <h2>🎙 レコーダー</h2>
+        <!-- 🌟【見た目調整対応・変更点】：
+             従来はタイトルと「手動再開・診断情報・設定」の3ボタンが
+             同じ行に横並びになっており、スマホの画面幅ではタイトルが
+             1行に収まらず折り返されてしまっていた。
+             3ボタンを1つの「⋮（その他）」メニューに集約し、ヘッダーは
+             常に「タイトル＋メニューボタン1個」の2要素だけにすることで、
+             画面幅に関わらずタイトルが確実に1行に収まるようにした。 -->
+        <div class="header-actions">
+            <button class="btn-icon" title="メニュー" id="headerMenuBtn" aria-haspopup="true" aria-expanded="false">⋮</button>
+            <div class="header-menu" id="headerMenu">
+                <button class="header-menu-item" id="showRecoveryBtn">
+                    <span class="header-menu-icon">🛠</span> 手動再開
+                </button>
+                <button class="header-menu-item" id="showDiagnosticsBtn">
+                    <span class="header-menu-icon">🩺</span> 診断情報
+                </button>
+                <button class="header-menu-item" id="settingsBtn">
+                    <span class="header-menu-icon">⚙️</span> 設定
+                </button>
+            </div>
         </div>
     </div>
 
     <div class="input-group">
-        <label for="recMode">AI処理モード</label>
-        <select id="recMode">
+        <label>会議名・内容 (ファイル名)</label>
+        <div class="input-with-icon">
+            <input type="text" id="meetingNameInput" placeholder="例：〇〇様 担当者会議">
+            <button class="mini-mic-btn" id="meetingNameMicBtn" title="音声で入力">🎙️</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>AI処理モード</label>
+        <select id="modeSelect">
             <option value="1">① 録音保存のみ</option>
             <option value="2">② 録音 ＋ AI文字起こし</option>
             <option value="3" selected>③ 録音 ＋ 文字起こし ＋ 議事録生成</option>
         </select>
     </div>
 
-    <div class="input-group" id="templateGroup">
-        <label for="recTemplate">議事録テンプレート (モード③用)</label>
-        <select id="recTemplate">
+    <div class="input-group fade-in" id="templateGroup">
+        <label>議事録テンプレート</label>
+        <select id="templateSelect">
             <option value="汎用議事録">汎用議事録</option>
             <option value="サービス担当者会議録">サービス担当者会議録</option>
             <option value="苦情・要望等受付">苦情・要望等受付</option>
         </select>
     </div>
-    
-    <button id="startBtn" class="action-btn">🔴 録音開始</button>
-    <button id="stopBtn" class="action-btn">⏹ 録音停止・AI処理開始</button>
-    
-    <div id="status">待機中</div>
 
-    <div id="stepContainer" class="step-container">
-        <div class="step-item" id="step1">
-            <div class="step-badge" id="badge1">1</div>
-            <span id="text1">Step 1: 音声データを保存</span>
+    <div class="record-area">
+        <button class="record-btn" id="mainRecordBtn">🎤</button>
+        <div class="status-text" id="statusText">タップして録音を開始</div>
+        <div class="elapsed-time" id="elapsedTime"></div>
+        <div class="wake-lock-warning" id="wakeLockWarning">
+            ⚠️ 画面がスリープすると録音が中断される可能性があります。<br>
+            録音中は端末をスリープさせないようにしてください。
         </div>
-        <div class="step-item" id="step2">
-            <div class="step-badge" id="badge2">2</div>
-            <span id="text2">Step 2: AI一言一句文字起こし</span>
+        <div class="wake-lock-note">
+            ※ 録音中は、他のアプリへの切り替えや画面ロックを避け、<br>
+            本アプリの画面を表示したままにしてください。
         </div>
-        <div class="step-item" id="step3">
-            <div class="step-badge" id="badge3">3</div>
-            <span id="text3">Step 3: テンプレートで議事録作成</span>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-title" id="progressTitle">AIが音声を処理中...</div>
+        <div class="dots-grid" id="dotsGrid"></div>
+    </div>
+
+    <!-- お助けモード（自動再開）パネル -->
+    <!-- 🌟 変更点：リンクの手入力は廃止。保存済みsessionIdを使い、
+         サーバー側の実データを根拠に自動で状態判定・再開する方式にした。 -->
+    <div class="recovery-panel help" id="recoveryPanel">
+        <h4>🛠 お助けモード（自動再開）</h4>
+        <div id="recoveryStatusText" style="font-size: 13px; color: #868e96; line-height: 1.6; margin-bottom: 12px;">
+            前回の録音状況を確認しています...
         </div>
-        <div class="result-links">
-            <a id="linkAudio" href="#" target="_blank">🎵 音声ファイルを開く</a>
-            <a id="linkDoc" href="#" target="_blank">📄 作成されたドキュメントを開く</a>
+        <button class="recovery-btn" id="recoveryActionBtn" style="display:none;"></button>
+    </div>
+
+    <!-- 🌟 新設（診断ログ強化対応）：診断情報パネル（finishReason・トークン数などの確認用） -->
+    <div class="recovery-panel diagnostics" id="diagnosticsPanel">
+        <h4>🩺 診断情報（AIへの共有用）</h4>
+        <div style="font-size: 12px; color: #868e96; margin-bottom: 10px; line-height: 1.6;">
+            文字起こし・議事録生成の処理結果（finishReason・トークン数等）です。<br>
+            「途中で止まった」等の不具合報告の際は、このテキストをそのままコピーして共有してください。
+        </div>
+        <textarea class="diagnostics-textarea" id="diagnosticsText" readonly placeholder="録音・文字起こし・議事録生成が完了すると、ここに診断情報が表示されます。"></textarea>
+        <button class="recovery-btn" id="copyDiagnosticsBtn">📋 診断情報をコピー</button>
+    </div>
+
+    <!-- システム設定パネル -->
+    <div class="recovery-panel settings" id="settingsPanel">
+        <h4>⚙️ システム設定</h4>
+        <div class="input-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px;">GAS ウェブアプリURL</label>
+            <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+            <button class="recovery-btn" id="saveSettingsBtn">設定を保存して閉じる</button>
         </div>
     </div>
 </div>
 
-<div id="configModal" class="modal">
-    <div class="modal-content">
-        <h3>⚙️ 初期設定</h3>
-        <p>ご自身のGoogle Apps Script (GAS) でデプロイした「ウェブアプリのURL」を入力してください。音声データは該当のGoogleドライブに保存されます。</p>
-        <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
-        <div class="modal-buttons">
-            <button id="saveConfigBtn">保存する</button>
-            <button id="closeConfigBtn">閉じる</button>
-        </div>
+<!-- 🌑 疑似スリープオーバーレイ：録音中、一定時間操作がないと表示される -->
+<div class="pseudo-sleep-overlay" id="pseudoSleepOverlay">
+    <div class="sleep-indicator">
+        <span class="sleep-rec-dot"></span>録音中<br>
+        <span id="sleepOverlayElapsed"></span><br>
+        画面をタップすると表示が戻ります
     </div>
 </div>
+
+<!-- キャッシュ強制回避用のバージョン記述を追加(v=5.2 デバッグ整理版) -->
+<!-- 🌟 recorder-controller.js の読み込み成否はコンソールログにのみ残す。
+     読み込みに失敗した場合はコンソールで確認できる（通常操作の
+     妨げにならないよう、アラートでのポップアップは行わない）。 -->
+<script src="js/recorder-controller.js?v=5.2"
+    onload="console.log('✅ recorder-controller.js 読み込み成功');"
+    onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
+></script>
 
 <script>
-    let mediaRecorder;
-    let audioChunks = [];
+    // ==========================================
+    // 🔧 設定と状態管理
+    // ==========================================
+    const APP_CONFIG = {
+        SEGMENT_INTERVAL_MS: 600000, // 本番運用: 10分（テストする場合は短い値に変更してください）
+        PSEUDO_SLEEP_DELAY_MS: 15000 // 🌟 追加：録音中、操作がないままこの時間が経つと疑似スリープ表示になる
+    };
 
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const speechBtn = document.getElementById('speechBtn');
-    const meetingNameInput = document.getElementById('meetingName');
-    const statusDiv = document.getElementById('status');
-    const recModeSelect = document.getElementById('recMode');
-    const templateGroup = document.getElementById('templateGroup');
-    
-    recModeSelect.addEventListener('change', (e) => {
-        if(e.target.value === "3") templateGroup.style.display = "block";
-        else templateGroup.style.display = "none";
-    });
-    
-    const configBtn = document.getElementById('configBtn');
-    const configModal = document.getElementById('configModal');
-    const gasUrlInput = document.getElementById('gasUrlInput');
-    const saveConfigBtn = document.getElementById('saveConfigBtn');
-    const closeConfigBtn = document.getElementById('closeConfigBtn');
+    const AppState = {
+        isRecording: false,
+        isStopping: false,
+        recorder: null,
+        globalStream: null,
+        chunkIndex: 0,
+        mimeType: 'audio/webm',
+        recordingStartedAt: null,
+        elapsedTimerId: null,
+        wakeLock: null,
+        wakeLockSupported: 'wakeLock' in navigator,
+        pseudoSleepTimerId: null,
+        isPseudoSleeping: false,
+        audioSendQueue: Promise.resolve(),
+        segmentTimerId: null,
+        isSegmentCycleActive: false,
+        // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+        //   マイク入力（rawMicStream）に対してハイパスフィルタ＋
+        //   ダイナミクス圧縮をかけた後の出力ストリームを
+        //   processedStream として MediaRecorder に渡す。
+        //   停止時に audioContext を確実に close() するため、
+        //   関連ノード・ストリームをすべて保持しておく。
+        audioContext: null,
+        rawMicStream: null,      // getUserMediaの生ストリーム（トラック停止用に保持）
+        processedStream: null,   // フィルタ後の出力ストリーム（MediaRecorderに渡す方）
+        audioProcessingNodes: null // { source, highpass, compressor, destination }
+    };
 
-    let savedGasUrl = localStorage.getItem('user_gas_url') || "";
-    gasUrlInput.value = savedGasUrl;
+    const UI = {
+        modeSelect: document.getElementById('modeSelect'),
+        templateGroup: document.getElementById('templateGroup'),
+        meetingNameInput: document.getElementById('meetingNameInput'),
+        meetingNameMicBtn: document.getElementById('meetingNameMicBtn'),
+        templateSelect: document.getElementById('templateSelect'),
+        mainRecordBtn: document.getElementById('mainRecordBtn'),
+        statusText: document.getElementById('statusText'),
+        elapsedTime: document.getElementById('elapsedTime'),
+        wakeLockWarning: document.getElementById('wakeLockWarning'),
+        pseudoSleepOverlay: document.getElementById('pseudoSleepOverlay'),
+        sleepOverlayElapsed: document.getElementById('sleepOverlayElapsed'),
+        progressContainer: document.getElementById('progressContainer'),
+        dotsGrid: document.getElementById('dotsGrid'),
+        progressTitle: document.getElementById('progressTitle'),
+        showRecoveryBtn: document.getElementById('showRecoveryBtn'),
+        recoveryPanel: document.getElementById('recoveryPanel'),
+        recoveryStatusText: document.getElementById('recoveryStatusText'),
+        recoveryActionBtn: document.getElementById('recoveryActionBtn'),
+        settingsBtn: document.getElementById('settingsBtn'),
+        settingsPanel: document.getElementById('settingsPanel'),
+        gasUrlInput: document.getElementById('gasUrlInput'),
+        saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+        // 🌟 新設（診断ログ強化対応）
+        showDiagnosticsBtn: document.getElementById('showDiagnosticsBtn'),
+        diagnosticsPanel: document.getElementById('diagnosticsPanel'),
+        diagnosticsText: document.getElementById('diagnosticsText'),
+        copyDiagnosticsBtn: document.getElementById('copyDiagnosticsBtn'),
+        // 🌟 新設（見た目調整対応）：ヘッダーの「⋮」その他メニュー
+        headerMenuBtn: document.getElementById('headerMenuBtn'),
+        headerMenu: document.getElementById('headerMenu')
+    };
 
-    if (!savedGasUrl) {
-        statusDiv.textContent = "⚠️ 右上の⚙️ボタンからGASのURLを設定してください";
-    }
+    // ==========================================
+    // 💡 イベントの紐付け
+    // ==========================================
+    function bindEvents() {
+        // 会議名の音声入力
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.continuous = false;
 
-    configBtn.addEventListener('click', () => configModal.style.display = 'flex');
-    closeConfigBtn.addEventListener('click', () => configModal.style.display = 'none');
-    
-    saveConfigBtn.addEventListener('click', () => {
-        const url = gasUrlInput.value.trim();
-        if (!url || !url.startsWith('https://script.google.com')) {
-            alert('正しいGASのウェブアプリURLを入力してください（最後が /exec で終わるもの）');
-            return;
+            UI.meetingNameMicBtn.addEventListener('click', () => recognition.start());
+
+            recognition.onstart = () => {
+                UI.meetingNameMicBtn.classList.add('listening');
+                UI.meetingNameInput.placeholder = "お話しください...";
+                UI.meetingNameInput.value = "";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                UI.meetingNameInput.value = transcript.replace(/[。、.\s]+$/, '');
+            };
+
+            recognition.onend = () => {
+                UI.meetingNameMicBtn.classList.remove('listening');
+                UI.meetingNameInput.placeholder = "例：〇〇様 担当者会議";
+            };
+
+            recognition.onerror = () => {
+                UI.meetingNameMicBtn.classList.remove('listening');
+                UI.meetingNameInput.placeholder = "例：〇〇様 担当者会議";
+            };
+        } else {
+            UI.meetingNameMicBtn.style.display = 'none';
         }
-        localStorage.setItem('user_gas_url', url);
-        savedGasUrl = url;
-        configModal.style.display = 'none';
-        statusDiv.textContent = "✅ GASのURLを設定しました";
-    });
 
-    // --- 音声入力機能 (🎤ボタン) ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        speechBtn.style.display = 'none'; 
-    } else {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'ja-JP';
-        recognition.interimResults = false;
-        let isRecognizing = false;
-
-        speechBtn.addEventListener('click', () => {
-            if (isRecognizing) {
-                recognition.abort(); 
-                statusDiv.textContent = "🛑 音声入力をキャンセルしました";
+        // モード切替のUI制御
+        UI.modeSelect.addEventListener('change', (e) => {
+            if (window.appController) window.appController.state.mode = e.target.value;
+            if (e.target.value === "3") {
+                UI.templateGroup.style.display = "block";
+                UI.templateGroup.classList.add('fade-in');
             } else {
-                recognition.start(); 
-                statusDiv.textContent = "🎤 会議名を喋ってください...";
-                isRecognizing = true;
-                speechBtn.textContent = "⏹";
-                speechBtn.classList.add('recognizing');
+                UI.templateGroup.style.display = "none";
             }
         });
 
-        recognition.onresult = (event) => {
-            meetingNameInput.value = event.results[0][0].transcript;
-            statusDiv.textContent = "🔊 音声入力を完了しました";
-        };
+        // ==========================================
+        // 🌟 パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
+        //
+        // 🛠 整理の経緯：
+        //   3つのパネルそれぞれで「他の2つを閉じる」処理を個別に
+        //   書いていたため、パネルが増えるたびに全箇所を修正する必要が
+        //   あり、UIの見た目も揃いにくかった。togglePanel() に集約し、
+        //   ヘッダーのボタン側にも「今開いているパネルはどれか」が
+        //   一目で分かるよう active-panel クラスを付け外しする。
+        //
+        // 🛠【見た目調整対応・変更点】：
+        //   3つのボタンをヘッダー直下の「⋮」その他メニュー内に
+        //   移設したことに伴い、togglePanel() 呼び出し前に必ず
+        //   ヘッダーメニュー自体を閉じるようにした
+        //   （メニュー項目をタップしたら、メニューは閉じてパネルだけが
+        //   開く、という一般的なドロップダウンメニューの挙動に揃える）。
+        // ==========================================
+        const ALL_PANELS = [
+            { panel: UI.recoveryPanel, btn: UI.showRecoveryBtn },
+            { panel: UI.settingsPanel, btn: UI.settingsBtn },
+            { panel: UI.diagnosticsPanel, btn: UI.showDiagnosticsBtn }
+        ];
 
-        recognition.onend = () => {
-            isRecognizing = false;
-            speechBtn.textContent = "🎤";
-            speechBtn.classList.remove('recognizing');
-            if (statusDiv.textContent === "🎤 会議名を喋ってください...") statusDiv.textContent = "";
-        };
+        function closeHeaderMenu() {
+            UI.headerMenu.classList.remove('open');
+            UI.headerMenuBtn.classList.remove('active-panel');
+            UI.headerMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        function togglePanel(targetPanel, targetBtn, onOpen) {
+            const isCurrentlyOpen = targetPanel.style.display === 'block';
+
+            closeHeaderMenu();
+
+            ALL_PANELS.forEach(({ panel, btn }) => {
+                panel.style.display = 'none';
+                if (btn) btn.classList.remove('active-panel');
+            });
+
+            if (!isCurrentlyOpen) {
+                targetPanel.style.display = 'block';
+                targetPanel.classList.add('fade-in');
+                if (targetBtn) targetBtn.classList.add('active-panel');
+                if (onOpen) onOpen();
+            }
+        }
+
+        // 🌟 新設（見た目調整対応）：ヘッダーの「⋮」その他メニューの開閉。
+        //   メニューを開くタイミングで、他の3パネルは念のため閉じておく
+        //   （メニューを開いた直後にパネルが被って表示される事故を防ぐ）。
+        UI.headerMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = UI.headerMenu.classList.contains('open');
+
+            if (isOpen) {
+                closeHeaderMenu();
+                return;
+            }
+
+            ALL_PANELS.forEach(({ panel, btn }) => {
+                panel.style.display = 'none';
+                if (btn) btn.classList.remove('active-panel');
+            });
+
+            UI.headerMenu.classList.add('open');
+            UI.headerMenuBtn.classList.add('active-panel');
+            UI.headerMenuBtn.setAttribute('aria-expanded', 'true');
+        });
+
+        // 🌟 メニュー外をタップ・クリックしたら自動的に閉じる。
+        document.addEventListener('click', (e) => {
+            if (UI.headerMenu.classList.contains('open') && !UI.headerMenu.contains(e.target)) {
+                closeHeaderMenu();
+            }
+        });
+
+        // 🌟 変更点（自動再開対応）：お助けモードを開いたタイミングで、
+        //   保存済みsessionIdを使った自動状態確認（checkRecoveryStatus）を実行する。
+        //   ユーザーはリンクやパスを入力する必要がない。
+        UI.showRecoveryBtn.addEventListener('click', () => {
+            togglePanel(UI.recoveryPanel, UI.showRecoveryBtn, checkRecoveryStatus);
+        });
+
+        UI.settingsBtn.addEventListener('click', () => {
+            togglePanel(UI.settingsPanel, UI.settingsBtn, () => {
+                UI.gasUrlInput.value = window.appController ? window.appController.gasUrl : "";
+            });
+        });
+
+        // 🔍【デバッグ対応・一時変更】：
+        //   「設定を保存」ボタンを押した際に、実際に何が入力欄に入っており、
+        //   localStorageに何が保存され、appController.gasUrlに何が
+        //   反映されているかを、その場でアラート表示して確認できるようにした。
+        //   原因判明後はこのデバッグ用アラートは元に戻す想定。
+        UI.saveSettingsBtn.addEventListener('click', () => {
+            const url = UI.gasUrlInput.value.trim();
+            if(url) {
+                localStorage.setItem('saved_gas_url', url);
+                if(window.appController) window.appController.gasUrl = url;
+                alert("設定を保存しました！");
+                UI.settingsPanel.style.display = 'none';
+                UI.settingsBtn.classList.remove('active-panel');
+            } else {
+                alert("URLを入力してください。");
+            }
+        });
+
+        // 🌟 新設（診断ログ強化対応）：診断パネルの開閉
+        //   recorder-controller.js の DiagnosticsReporter.report() が
+        //   #diagnosticsPanel / #diagnosticsText を直接操作して自動表示するが、
+        //   ユーザーが手動でいつでも開けるよう、このボタンからも開閉できるようにする。
+        if (UI.showDiagnosticsBtn) {
+            UI.showDiagnosticsBtn.addEventListener('click', () => {
+                togglePanel(UI.diagnosticsPanel, UI.showDiagnosticsBtn, () => {
+                    // 🌟 既に保持されている診断情報があれば表示する
+                    if (window.lastDiagnosticsText) {
+                        UI.diagnosticsText.value = window.lastDiagnosticsText;
+                    }
+                });
+            });
+        }
+
+        // 🌟 新設（診断ログ強化対応）：診断情報コピー・ボタン
+        if (UI.copyDiagnosticsBtn) {
+            UI.copyDiagnosticsBtn.addEventListener('click', async () => {
+                const text = window.lastDiagnosticsText || UI.diagnosticsText.value;
+                if (!text) {
+                    alert("まだ診断情報がありません。録音・文字起こしを一度実行してください。");
+                    return;
+                }
+                try {
+                    await navigator.clipboard.writeText(text);
+                    UI.copyDiagnosticsBtn.textContent = "✅ コピーしました！";
+                } catch (err) {
+                    // クリップボードAPIが使えない環境向けのフォールバック
+                    UI.diagnosticsText.select();
+                    document.execCommand('copy');
+                    UI.copyDiagnosticsBtn.textContent = "✅ コピーしました！";
+                }
+                setTimeout(() => {
+                    UI.copyDiagnosticsBtn.textContent = "📋 診断情報をコピー";
+                }, 2000);
+            });
+        }
+
+        UI.mainRecordBtn.addEventListener('click', handleRecordButtonClick);
     }
 
-    // --- インジケーター制御関数 ---
-    function setStepStatus(stepNum, status) {
-        const item = document.getElementById(`step${stepNum}`);
-        const text = document.getElementById(`text${stepNum}`);
-        item.className = 'step-item'; 
-        
-        if (status === 'active') {
-            item.classList.add('step-active');
-            text.innerHTML = text.innerHTML.replace('...', '中... ⏳');
-        } else if (status === 'complete') {
-            item.classList.add('step-complete');
-            text.innerHTML = text.innerHTML.replace('中... ⏳', ' 完了！ ✅').replace('...', ' 完了！ ✅');
+    // ==========================================
+    // 🛠 お助けモード：自動再開ロジック（案A・連番フォルダ保存方式対応）
+    // ==========================================
+    async function checkRecoveryStatus() {
+        UI.recoveryActionBtn.style.display = "none";
+
+        if (!window.appController || !window.appController.hasPendingSession()) {
+            UI.recoveryStatusText.innerHTML =
+                "再開が必要な前回の録音は見つかりませんでした。<br>" +
+                "（すべて正常に完了しているか、まだ録音を行っていません）";
+            return;
+        }
+
+        if (!window.appController.gasUrl) {
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ GASのURLが設定されていないため、状態を確認できません。先に⚙️設定を行ってください。";
+            return;
+        }
+
+        if (window.appController.hasPendingGeminiFileUris()) {
+            const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+            const templateType = UI.templateSelect.value;
+            const uploadedCount = window.appController.state.geminiFileUris.length;
+
+            UI.recoveryStatusText.innerHTML =
+                `✨ <b>AIアップロード済みの録音データが見つかりました。</b>` +
+                `（${uploadedCount}セグメント分）<br>` +
+                `重い音声の再送信なしで、すぐに文字起こし・議事録の生成から再開できます。`;
+            UI.recoveryActionBtn.textContent = "✨ 文字起こし・議事録の生成から再開する";
+            UI.recoveryActionBtn.style.display = "block";
+            UI.recoveryActionBtn.onclick = () => runRecoveryFromGeminiFileUris(meetingName, templateType);
+            return;
+        }
+
+        UI.recoveryStatusText.innerHTML = "🔍 前回の録音の状態をサーバーに問い合わせています...";
+
+        try {
+            const statusResult = await window.appController.checkSessionStatus();
+            renderRecoveryStatus(statusResult);
+        } catch (err) {
+            console.error("❌ お助けモード：状態確認に失敗しました", err);
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ 状態の確認中にエラーが発生しました。通信環境をご確認のうえ、" +
+                "もう一度「手動再開」を開き直してください。<br>詳細: " + err.message;
         }
     }
 
-    // --- 録音およびデータ送信機能 (爆速3-Step API対応) ---
-    startBtn.addEventListener('click', async () => {
-        if (!savedGasUrl) {
-            alert('録音を開始する前に、右上の⚙️ボタンからご自身のGAS URLを設定してください。');
-            configModal.style.display = 'flex';
+    function renderRecoveryStatus(statusResult) {
+        const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+        const templateType = UI.templateSelect.value;
+
+        if (statusResult.status === "audio_saved") {
+            UI.recoveryStatusText.innerHTML =
+                `✅ <b>音声データは専用フォルダに保存済みです。</b>` +
+                `（フォルダ名: ${statusResult.audioFileName}、ファイル数: ${statusResult.fileCount}件）<br>` +
+                `🔊 音声データ自体は失われていません。<br>` +
+                `文字起こし・議事録の生成から再開します。`;
+            UI.recoveryActionBtn.textContent = "文字起こし・議事録の生成から再開する";
+            UI.recoveryActionBtn.style.display = "block";
+            UI.recoveryActionBtn.onclick = () => runRecoveryTranscriptPending(
+                statusResult.audioFolderId, meetingName, templateType
+            );
+
+        } else {
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ サーバー側にも、このセッションに対応する録音データが見つかりませんでした。<br>" +
+                "お手数ですが、Googleドライブの「レコーダー/音声データ」フォルダを直接ご確認ください。";
+        }
+    }
+
+    async function runRecoveryAudioPending(meetingName, templateType) {
+        UI.recoveryActionBtn.disabled = true;
+        UI.recoveryStatusText.innerHTML = "🔊 音声データを1本にまとめています...";
+
+        try {
+            const audioResult = await window.appController.resumeFromAudioPending(meetingName);
+
+            if (window.appController.hasPendingGeminiFileUris()) {
+                UI.recoveryStatusText.innerHTML =
+                    `✅ 音声データの確認が完了しました！<br>` +
+                    `続けて文字起こし・議事録の生成に進みます...（数分かかることがあります）`;
+
+                const result = await window.appController.transcribeFromGeminiFileUris(
+                    meetingName, templateType
+                );
+
+                if (result) {
+                    finishRecoveryUI(result);
+                } else {
+                    UI.recoveryStatusText.innerHTML =
+                        "✅ 音声データの確認は完了しました。（文字起こしは別途「手動再開」から再度お試しください）";
+                }
+            } else {
+                UI.recoveryStatusText.innerHTML =
+                    `✅ 音声データの確認が完了しました！<br>` +
+                    `AIアップロード済みのデータが見つからないため、専用フォルダ内の音声ファイルから` +
+                    `文字起こしをやり直します...（音声全体をまとめて処理するため、数分かかることがあります）`;
+
+                const result = await window.appController.transcribeFinalizedAudio(
+                    meetingName, templateType
+                );
+
+                if (result) {
+                    finishRecoveryUI(result);
+                } else {
+                    UI.recoveryStatusText.innerHTML =
+                        "✅ 音声データの確認は完了しました。（文字起こしは別途「手動再開」から再度お試しください）";
+                }
+            }
+        } catch (err) {
+            console.error("❌ お助けモード：音声確認の再開に失敗しました", err);
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ 音声データの確認に失敗しました。もう一度お試しいただくか、" +
+                "Googleドライブの「レコーダー/音声データ」フォルダをご確認ください。<br>詳細: " + err.message;
+        } finally {
+            UI.recoveryActionBtn.disabled = false;
+        }
+    }
+
+    async function runRecoveryFromGeminiFileUris(meetingName, templateType) {
+        UI.recoveryActionBtn.disabled = true;
+        UI.recoveryStatusText.innerHTML = "✨ アップロード済みの音声データから文字起こし中です...（数分かかることがあります）";
+
+        try {
+            const result = await window.appController.transcribeFromGeminiFileUris(
+                meetingName, templateType
+            );
+
+            if (result) {
+                finishRecoveryUI(result);
+            } else {
+                UI.recoveryStatusText.innerHTML =
+                    "⚠️ 処理がスキップされました（既に処理中か、確定済みの可能性があります）。";
+            }
+        } catch (err) {
+            console.error("❌ お助けモード：fileUriからの文字起こし再開に失敗しました", err);
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
+        } finally {
+            UI.recoveryActionBtn.disabled = false;
+        }
+    }
+
+    async function runRecoveryTranscriptPending(audioFolderId, meetingName, templateType) {
+        UI.recoveryActionBtn.disabled = true;
+        UI.recoveryStatusText.innerHTML = "✨ 専用フォルダ内の音声データからAIが文字起こし中です...";
+
+        try {
+            const mimeType = window.appController.state.mimeType || AppState.mimeType;
+            const result = await window.appController.resumeFromTranscriptPending(
+                audioFolderId, mimeType, meetingName, templateType
+            );
+            finishRecoveryUI(result);
+        } catch (err) {
+            console.error("❌ お助けモード：文字起こしの再開に失敗しました", err);
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
+        } finally {
+            UI.recoveryActionBtn.disabled = false;
+        }
+    }
+
+    function finishRecoveryUI(result) {
+        UI.recoveryStatusText.innerHTML = "🎉 再開処理が完了しました！";
+        UI.recoveryActionBtn.style.display = "none";
+
+        if (result.documentUrl) {
+            if (confirm("議事録の生成が完了しました！議事録ドキュメントを開きますか？")) {
+                window.open(result.documentUrl, "_blank");
+            }
+        } else if (result.transcriptUrl) {
+            if (confirm("文字起こしが完了しました！文字起こしドキュメントを開きますか？")) {
+                window.open(result.transcriptUrl, "_blank");
+            }
+        }
+    }
+
+    // ==========================================
+    // 🔆 画面スリープ防止（Wake Lock API）
+    // ==========================================
+    async function requestWakeLock() {
+        if (!AppState.wakeLockSupported) {
+            console.warn("⚠️ この端末・ブラウザはWake Lock APIに対応していません。");
+            showWakeLockWarning();
             return;
         }
 
         try {
-            statusDiv.textContent = "マイクを準備中...";
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // 端末依存を吸収しつつ、AIが認識できるギリギリの「32kbps」に圧縮
-            let options = { 
-                mimeType: 'audio/webm',
-                audioBitsPerSecond: 32000 
-            };
-            if (!MediaRecorder.isTypeSupported('audio/webm')) {
-                options = { 
-                    mimeType: 'audio/mp4',
-                    audioBitsPerSecond: 32000
-                };
-            }
+            AppState.wakeLock = await navigator.wakeLock.request('screen');
+            console.log("🔆 Wake Lock取得成功：画面スリープを防止します。");
+            hideWakeLockWarning();
 
-            mediaRecorder = new MediaRecorder(stream, options);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) audioChunks.push(event.data);
-            };
-
-            // ⏹ 録音停止時の非同期3ステップ処理
-            mediaRecorder.onstop = async () => {
-                statusDiv.textContent = "データを準備中...";
-                const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                const meetingName = meetingNameInput.value.trim() || "名称未設定会議";
-                const mode = recModeSelect.value;
-                const template = document.getElementById('recTemplate').value;
-
-                document.getElementById('stepContainer').style.display = 'block';
-                document.getElementById('linkAudio').style.display = 'none';
-                document.getElementById('linkDoc').style.display = 'none';
-                
-                // --- Step 1: 音声保存（最速） ---
-                setStepStatus(1, 'active');
-                statusDiv.textContent = "Googleドライブへ保存中...";
-
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = async () => {
-                    const base64Data = reader.result.split(',')[1]; 
-
-                    const step1Payload = {
-                        action: "uploadAudio",
-                        audio: base64Data,
-                        mimeType: mediaRecorder.mimeType,
-                        userMemo: meetingName
-                    };
-
-                    let step1Result;
-                    try {
-                        const response = await fetch(savedGasUrl, { 
-                            method: 'POST', 
-                            body: JSON.stringify(step1Payload),
-                            headers: { 'Content-Type': 'text/plain' }
-                        });
-                        step1Result = await response.json();
-                        
-                        if (step1Result.status !== "success") throw new Error(step1Result.message);
-                        
-                        setStepStatus(1, 'complete');
-                        document.getElementById('linkAudio').href = step1Result.audioUrl;
-                        document.getElementById('linkAudio').style.display = 'block';
-                        statusDiv.textContent = "音声の保存が完了しました！";
-                        
-                    } catch (error) {
-                        console.error(error);
-                        statusDiv.textContent = "❌ Step1 エラー: " + error.message;
-                        resetButtons();
-                        return;
-                    }
-
-                    if (mode === "1") { resetButtons(); return; }
-
-                    // --- Step 2: 文字起こし (非同期) ---
-                    setStepStatus(2, 'active');
-                    statusDiv.textContent = "AIが音声を文字起こし中...🧠";
-                    
-                    const step2Payload = {
-                        action: "transcribe",
-                        fileId: step1Result.fileId,
-                        baseName: step1Result.baseName,
-                        mimeType: step1Result.mimeType
-                    };
-
-                    let step2Result;
-                    try {
-                        const response = await fetch(savedGasUrl, { 
-                            method: 'POST', 
-                            body: JSON.stringify(step2Payload),
-                            headers: { 'Content-Type': 'text/plain' }
-                        });
-                        step2Result = await response.json();
-                        
-                        if (step2Result.status !== "success") throw new Error(step2Result.message);
-                        
-                        setStepStatus(2, 'complete');
-                        document.getElementById('linkDoc').href = step2Result.docUrl;
-                        document.getElementById('linkDoc').style.display = 'block';
-                        statusDiv.textContent = "文字起こしが完了しました！";
-                        
-                    } catch (error) {
-                        console.error(error);
-                        statusDiv.textContent = "❌ Step2 エラー: " + error.message;
-                        resetButtons();
-                        return;
-                    }
-
-                    if (mode === "2") { resetButtons(); return; }
-
-                    // --- Step 3: 議事録生成 (ドライブ操作スキップで爆速化) ---
-                    setStepStatus(3, 'active');
-                    statusDiv.textContent = "テンプレートに合わせて議事録を作成中...📝";
-                    
-                    const step3Payload = {
-                        action: "summarize",
-                        transcriptionText: step2Result.transcriptionText, 
-                        templateType: template,
-                        originalName: meetingName
-                    };
-
-                    try {
-                        const response = await fetch(savedGasUrl, { 
-                            method: 'POST', 
-                            body: JSON.stringify(step3Payload),
-                            headers: { 'Content-Type': 'text/plain' }
-                        });
-                        const step3Result = await response.json();
-                        
-                        if (step3Result.status !== "success") throw new Error(step3Result.message);
-                        
-                        setStepStatus(3, 'complete');
-                        document.getElementById('linkDoc').href = step3Result.docUrl; 
-                        statusDiv.textContent = "🎉 全ての処理が完了しました！";
-                        
-                    } catch (error) {
-                        console.error(error);
-                        statusDiv.textContent = "❌ Step3 エラー: " + error.message;
-                    }
-                    
-                    resetButtons();
-                };
-            };
-
-            mediaRecorder.start();
-            statusDiv.textContent = "🎙 録音中... (画面は閉じないでください)";
-            
-            startBtn.style.display = "none";
-            stopBtn.style.display = "block";
-            stopBtn.disabled = false;
-            meetingNameInput.disabled = true; 
-            recModeSelect.disabled = true;
-            document.getElementById('recTemplate').disabled = true;
-            if (SpeechRecognition) speechBtn.disabled = true;
-
+            AppState.wakeLock.addEventListener('release', () => {
+                console.warn("⚠️ Wake Lockが解除されました（システムにより自動解除された可能性があります）。");
+                if (AppState.isRecording || AppState.isStopping) {
+                    showWakeLockWarning();
+                }
+            });
         } catch (err) {
-            statusDiv.textContent = "";
-            alert('マイクの許可がないか、デバイスエラーが発生しました: ' + err.message);
+            console.warn("⚠️ Wake Lockの取得に失敗しました:", err);
+            showWakeLockWarning();
+        }
+    }
+
+    function releaseWakeLock() {
+        if (AppState.wakeLock) {
+            AppState.wakeLock.release().catch(() => {});
+            AppState.wakeLock = null;
+            console.log("🔆 Wake Lockを解放しました。");
+        }
+        hideWakeLockWarning();
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible' && (AppState.isRecording || AppState.isStopping) && !AppState.wakeLock) {
+            console.log("🔆 画面が再アクティブ化されました。Wake Lockの再取得を試みます。");
+            await requestWakeLock();
         }
     });
 
-    function resetButtons() {
-        startBtn.style.display = "block";
-        startBtn.disabled = false;
-        stopBtn.style.display = "none";
-        stopBtn.textContent = "⏹ 録音停止・AI処理開始";
-        meetingNameInput.disabled = false; 
-        recModeSelect.disabled = false;
-        document.getElementById('recTemplate').disabled = false;
-        if (SpeechRecognition) speechBtn.disabled = false;
+    function showWakeLockWarning() {
+        if (!AppState.isRecording && !AppState.isStopping) return;
+        UI.wakeLockWarning.style.display = "block";
     }
-</script>
+    function hideWakeLockWarning() {
+        UI.wakeLockWarning.style.display = "none";
+    }
 
+    // ==========================================
+    // 🌑 疑似スリープ表示の制御
+    // ==========================================
+    function resetPseudoSleepTimer() {
+        if (AppState.pseudoSleepTimerId) {
+            clearTimeout(AppState.pseudoSleepTimerId);
+            AppState.pseudoSleepTimerId = null;
+        }
+
+        if (AppState.isPseudoSleeping) {
+            wakePseudoSleep();
+        }
+
+        if (!AppState.isRecording) return;
+
+        AppState.pseudoSleepTimerId = setTimeout(() => {
+            enterPseudoSleep();
+        }, APP_CONFIG.PSEUDO_SLEEP_DELAY_MS);
+    }
+
+    function enterPseudoSleep() {
+        if (!AppState.isRecording) return;
+        AppState.isPseudoSleeping = true;
+        updateSleepOverlayElapsedText();
+        UI.pseudoSleepOverlay.classList.add('active');
+        console.log("🌑 疑似スリープ表示に入りました（実際のスリープはWake Lockで防止中）。");
+    }
+
+    function wakePseudoSleep() {
+        AppState.isPseudoSleeping = false;
+        UI.pseudoSleepOverlay.classList.remove('active');
+    }
+
+    function stopPseudoSleepCycle() {
+        if (AppState.pseudoSleepTimerId) {
+            clearTimeout(AppState.pseudoSleepTimerId);
+            AppState.pseudoSleepTimerId = null;
+        }
+        wakePseudoSleep();
+    }
+
+    function updateSleepOverlayElapsedText() {
+        if (!AppState.recordingStartedAt) return;
+        const sec = Math.floor((Date.now() - AppState.recordingStartedAt) / 1000);
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        UI.sleepOverlayElapsed.textContent = `${h}:${m}:${s}`;
+    }
+
+    ['click', 'touchstart', 'keydown'].forEach(eventName => {
+        document.addEventListener(eventName, () => {
+            if (AppState.isRecording) {
+                resetPseudoSleepTimer();
+            }
+        }, { passive: true });
+    });
+
+
+    async function handleRecordButtonClick() {
+        if (!window.appController || !window.appController.gasUrl) {
+            alert("初回設定が必要です！\n右上の「⚙️設定」ボタンから、GASウェブアプリのURLを登録してください。");
+            if(UI.settingsPanel.style.display !== 'block') UI.settingsBtn.click();
+            return;
+        }
+
+        if (AppState.isStopping) {
+            console.warn("⚠️ 停止処理を実行中です。しばらくお待ちください。");
+            return;
+        }
+
+        if (!AppState.isRecording) {
+            await startRecording();
+        } else {
+            await stopRecordingAndProcess();
+        }
+    }
+
+    // ==========================================
+    // 🎚️ 音声前処理フィルタチェーン（Web Audio API）
+    //
+    // 🛠 目的：
+    //   getUserMedia の echoCancellation / noiseSuppression /
+    //   autoGainControl はブラウザ・端末依存のブラックボックス処理であり、
+    //   効果が不十分なケース（環境音が多い、複数人の音量差が大きい等）が
+    //   あるため、その手前でこちらでも制御できる軽量なフィルタを
+    //   追加でかけておく。
+    //
+    // 🛠 構成：
+    //   マイク入力 → ハイパスフィルタ（低周波ノイズ除去）
+    //             → ダイナミクスコンプレッサー（音量差の圧縮）
+    //             → MediaStreamDestination（MediaRecorderに渡す出力）
+    //
+    // 🛠 パラメータ選定の考え方：
+    //   ・ハイパスフィルタのカットオフは100Hz付近とした。人の声の
+    //     基本周波数（成人男性で概ね85〜180Hz、成人女性で165〜255Hz程度）
+    //     を削らない範囲で、空調音・振動音・机を叩く音等の低周波ノイズを
+    //     減衰させることを狙っている。
+    //   ・コンプレッサーは「声が小さい人と大きい人の差を縮めて、
+    //     全体として聞き取りやすくする」ことが目的のため、
+    //     ratioを強くしすぎず（4:1程度）、極端な音割れ的な圧縮は避けた。
+    //   ・段数はこの2つに絞り、モバイル端末への処理負荷を抑えている。
+    //
+    // 🛠 フォールバック：
+    //   AudioContext の生成やノード接続で例外が発生した場合、
+    //   前処理なしの生ストリームでそのまま録音を継続できるよう、
+    //   呼び出し元（startRecording）でtry/catchしてフォールバックする。
+    // ==========================================
+    function buildAudioProcessingChain(rawStream) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            console.warn("⚠️ この端末・ブラウザはWeb Audio APIに対応していません。前処理なしで録音します。");
+            return null;
+        }
+
+        const audioContext = new AudioContextClass();
+
+        const source = audioContext.createMediaStreamSource(rawStream);
+
+        // ハイパスフィルタ：低周波ノイズ（空調音・振動音等）を減衰
+        const highpass = audioContext.createBiquadFilter();
+        highpass.type = "highpass";
+        highpass.frequency.value = 100; // 100Hz未満をカット
+        highpass.Q.value = 0.7;
+
+        // ダイナミクスコンプレッサー：発話者間の音量差を圧縮し、
+        // 小さい声も相対的に聞き取りやすくする
+        const compressor = audioContext.createDynamicsCompressor();
+        compressor.threshold.value = -28;  // このレベルを超えた音から圧縮開始
+        compressor.knee.value = 24;
+        compressor.ratio.value = 4;        // 4:1の圧縮率（強すぎない設定）
+        compressor.attack.value = 0.01;
+        compressor.release.value = 0.25;
+
+        // MediaRecorderに渡すための出力先
+        const destination = audioContext.createMediaStreamDestination();
+
+        source.connect(highpass);
+        highpass.connect(compressor);
+        compressor.connect(destination);
+
+        return {
+            audioContext: audioContext,
+            processedStream: destination.stream,
+            nodes: { source, highpass, compressor, destination }
+        };
+    }
+
+    // 🌟 録音停止時・エラー時に、Web Audio API関連のリソースを
+    //   確実に解放するための共通ヘルパー。close()を呼び忘れると
+    //   AudioContextがリークし続け、特に長時間の利用でモバイル端末の
+    //   リソースを圧迫する可能性があるため、停止経路をすべてここに集約する。
+    function teardownAudioProcessingChain() {
+        if (AppState.audioContext) {
+            try {
+                AppState.audioContext.close();
+            } catch (e) {
+                console.warn("⚠️ AudioContextのclose()に失敗しました（無視して続行）:", e);
+            }
+        }
+        AppState.audioContext = null;
+        AppState.processedStream = null;
+        AppState.audioProcessingNodes = null;
+    }
+
+    async function startRecording() {
+        try {
+            // 🌟【文字起こし精度向上対応】：
+            //   従来は { audio: true } のみを指定しており、ブラウザ・端末側が
+            //   持つ音声処理機能（エコーキャンセル、ノイズ抑制、自動音量調整）を
+            //   一切活用していなかった。
+            //   echoCancellation / noiseSuppression / autoGainControl を
+            //   明示的に有効化することで、多くのAndroid端末ではハードウェア
+            //   支援によるノイズ抑制・音量正規化が働くようになり、
+            //   Gemini側での聞き取り精度（[聞き取り不能]の発生率低減）が
+            //   改善することを期待した変更。
+            //   これらの制約は「ベストエフォート」であり、対応していない
+            //   端末・ブラウザでは単純に無視される（エラーにはならない）ため、
+            //   後方互換上のリスクは低い。
+            AppState.rawMicStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+
+            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+            //   生のマイクストリームに対してハイパスフィルタ＋
+            //   コンプレッサーをかけた後のストリームを、実際に
+            //   MediaRecorderへ渡すストリームとして採用する。
+            //   何らかの理由でフィルタチェーンの構築に失敗した場合は、
+            //   前処理なしの生ストリームにフォールバックし、
+            //   録音自体は継続できるようにする。
+            let chain = null;
+            try {
+                chain = buildAudioProcessingChain(AppState.rawMicStream);
+            } catch (audioChainError) {
+                console.warn("⚠️ 音声前処理チェーンの構築に失敗しました。前処理なしで録音を継続します:", audioChainError);
+                chain = null;
+            }
+
+            if (chain) {
+                AppState.audioContext = chain.audioContext;
+                AppState.processedStream = chain.processedStream;
+                AppState.audioProcessingNodes = chain.nodes;
+                AppState.globalStream = chain.processedStream;
+                console.log("🎚️ 音声前処理（ハイパスフィルタ＋コンプレッサー）を適用して録音します。");
+            } else {
+                AppState.globalStream = AppState.rawMicStream;
+                console.log("ℹ️ 音声前処理なしで録音します（生のマイク入力をそのまま使用）。");
+            }
+
+            if (window.appController) window.appController.startNewSession();
+
+            AppState.isRecording = true;
+            AppState.isStopping = false;
+            AppState.isSegmentCycleActive = true;
+            AppState.chunkIndex = 0;
+            AppState.audioSendQueue = Promise.resolve();
+            AppState.recordingStartedAt = Date.now();
+
+            UI.dotsGrid.innerHTML = '';
+
+            UI.mainRecordBtn.classList.add('recording');
+            UI.mainRecordBtn.innerHTML = "⏹";
+            UI.statusText.innerHTML = "🔴 録音中... (タップして終了)";
+            UI.statusText.style.color = "#fa5252";
+            UI.progressContainer.style.display = "none";
+
+            document.body.classList.add('recording-active');
+
+            await requestWakeLock();
+
+            resetPseudoSleepTimer();
+
+            startElapsedTimeDisplay();
+
+            let mimeType = 'audio/webm';
+            if (MediaRecorder.isTypeSupported('audio/webm')) {
+                mimeType = 'audio/webm';
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                mimeType = 'audio/mp4';
+            }
+            AppState.mimeType = mimeType;
+
+            startNewSegment();
+
+        } catch (err) {
+            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+            //   getUserMedia自体の失敗だけでなく、フィルタチェーン構築後の
+            //   処理（startNewSegment等）で例外が起きた場合も、
+            //   ここまでに確保したマイクストリーム・AudioContextが
+            //   残ったままにならないよう、念のため解放しておく。
+            if (AppState.rawMicStream) {
+                AppState.rawMicStream.getTracks().forEach(track => track.stop());
+                AppState.rawMicStream = null;
+            }
+            if (AppState.globalStream) {
+                AppState.globalStream.getTracks().forEach(track => track.stop());
+                AppState.globalStream = null;
+            }
+            teardownAudioProcessingChain();
+
+            alert("マイクのアクセスが許可されませんでした。ブラウザの設定を確認してください。");
+            console.error("Audio Error:", err);
+        }
+    }
+
+    function startNewSegment() {
+        if (!AppState.isSegmentCycleActive) {
+            console.log("🛑 セグメントサイクルが終了しているため、新しいセグメントは開始しません。");
+            return;
+        }
+
+        const mimeType = AppState.mimeType;
+        const options = mimeType ? { mimeType: mimeType } : {};
+
+        const recorder = new MediaRecorder(AppState.globalStream, options);
+        AppState.recorder = recorder;
+
+        let segmentBlobParts = [];
+
+        recorder.ondataavailable = (e) => {
+            if (e.data.size === 0) return;
+            segmentBlobParts.push(e.data);
+        };
+
+        recorder.onstop = () => {
+            const segmentIndex = AppState.chunkIndex;
+            AppState.chunkIndex++;
+
+            console.log(`🛑 セグメント${segmentIndex}の録音を停止しました。パーツ数: ${segmentBlobParts.length}`);
+
+            if (segmentBlobParts.length > 0) {
+                const segmentBlob = new Blob(segmentBlobParts, { type: mimeType });
+                handleSegmentComplete(segmentBlob, mimeType, segmentIndex);
+            } else {
+                console.warn(`⚠️ セグメント${segmentIndex}: データが空のため、送信をスキップします。`);
+            }
+
+            if (typeof AppState._onRecorderStopped === 'function') {
+                const callback = AppState._onRecorderStopped;
+                AppState._onRecorderStopped = null;
+                callback();
+            }
+
+            if (AppState.isSegmentCycleActive) {
+                startNewSegment();
+            }
+        };
+
+        recorder.onerror = (event) => {
+            console.error("❌ MediaRecorderでエラーが発生しました:", event.error);
+            UI.statusText.innerHTML = "⚠️ 録音が中断されました（スリープ等の可能性）。もう一度録音を開始してください。";
+            UI.statusText.style.color = "#fa5252";
+            AppState.isRecording = false;
+            AppState.isSegmentCycleActive = false;
+            if (AppState.segmentTimerId) {
+                clearTimeout(AppState.segmentTimerId);
+                AppState.segmentTimerId = null;
+            }
+            stopElapsedTimeDisplay();
+            stopPseudoSleepCycle();
+            releaseWakeLock();
+
+            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+            //   予期しない中断時も、マイクストリーム（生・処理後の両方）と
+            //   AudioContextを確実に解放する。これを怠ると、録音が
+            //   異常終了した際に端末のマイクが「使用中」のまま残り、
+            //   次回の録音開始やマイクの権限周りで不具合が起きうる。
+            if (AppState.globalStream) {
+                AppState.globalStream.getTracks().forEach(track => track.stop());
+                AppState.globalStream = null;
+            }
+            if (AppState.rawMicStream) {
+                AppState.rawMicStream.getTracks().forEach(track => track.stop());
+                AppState.rawMicStream = null;
+            }
+            teardownAudioProcessingChain();
+
+            document.body.classList.remove('recording-active');
+            UI.mainRecordBtn.classList.remove('recording');
+            UI.mainRecordBtn.innerHTML = "🎤";
+            UI.mainRecordBtn.disabled = false;
+            alert(
+                "録音が予期せず中断されました。画面スリープや他アプリへの切り替えが原因の可能性があります。\n" +
+                "これまでに録音できた部分は保存されていますが、続きを録音する場合は「録音開始」を押して新しく録音を始めてください。"
+            );
+        };
+
+        recorder.start();
+
+        AppState.segmentTimerId = setTimeout(() => {
+            if (AppState.recorder && AppState.recorder.state === "recording") {
+                AppState.recorder.stop();
+            }
+        }, APP_CONFIG.SEGMENT_INTERVAL_MS);
+    }
+
+    function handleSegmentComplete(segmentBlob, mimeType, segmentIndex) {
+        const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        dot.id = `dot-${segmentIndex}`;
+        UI.dotsGrid.appendChild(dot);
+
+        AppState.audioSendQueue = AppState.audioSendQueue.then(async () => {
+            const base64 = await blobToBase64(segmentBlob);
+
+            const results = await Promise.allSettled([
+                window.appController
+                    ? window.appController.appendAudioChunk(base64, mimeType, meetingName, segmentIndex)
+                    : Promise.resolve(false),
+                window.appController
+                    ? window.appController.uploadChunkToGeminiAndStore(base64, mimeType, segmentIndex)
+                    : Promise.resolve(false)
+            ]);
+
+            const driveOk = results[0].status === 'fulfilled' && results[0].value === true;
+            const geminiOk = results[1].status === 'fulfilled' && results[1].value === true;
+
+            const dotEl = document.getElementById(`dot-${segmentIndex}`);
+            if (dotEl) {
+                if (geminiOk) {
+                    dotEl.classList.add('complete');
+                } else {
+                    dotEl.classList.add('error');
+                }
+            }
+
+            if (!driveOk) {
+                console.warn(`⚠️ セグメント${segmentIndex}: Drive保存に失敗しました（音声原本バックアップに影響）。`);
+            }
+            if (!geminiOk) {
+                console.warn(`⚠️ セグメント${segmentIndex}: Geminiアップロードに失敗しました（文字起こしに影響）。`);
+            }
+        }).catch(err => {
+            console.error("❌ セグメント処理中に予期しないエラー:", err);
+            const dotEl = document.getElementById(`dot-${segmentIndex}`);
+            if (dotEl) {
+                dotEl.classList.add('error');
+            }
+        });
+    }
+
+    async function stopRecordingAndProcess() {
+        if (AppState.isStopping) return;
+        AppState.isStopping = true;
+        AppState.isRecording = false;
+        AppState.isSegmentCycleActive = false;
+
+        if (AppState.segmentTimerId) {
+            clearTimeout(AppState.segmentTimerId);
+            AppState.segmentTimerId = null;
+        }
+
+        stopElapsedTimeDisplay();
+        stopPseudoSleepCycle();
+
+        document.body.classList.remove('recording-active');
+
+        UI.mainRecordBtn.disabled = true;
+        UI.mainRecordBtn.classList.remove('recording');
+        UI.mainRecordBtn.innerHTML = "🎤";
+        UI.mainRecordBtn.style.display = "none";
+        UI.statusText.innerHTML = "🎤 最後のセグメントを確定しています...";
+        UI.statusText.style.color = "#4dabf7";
+
+        try {
+            await waitForRecorderToStop();
+
+            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+            //   従来は AppState.globalStream（MediaRecorderに渡していた方の
+            //   ストリーム）のトラックだけを stop() していた。
+            //   前処理チェーンを導入した後は、globalStream が
+            //   processedStream（MediaStreamDestination由来）を指すため、
+            //   これだけを止めても「実際にマイクを掴んでいる」
+            //   rawMicStream 側のトラックは停止されず、マイクが
+            //   解放されない（端末のマイク使用中インジケーターが
+            //   消えない）不具合になる。
+            //   そのため、globalStream と rawMicStream の両方のトラックを
+            //   個別に停止し、AudioContext も teardownAudioProcessingChain()
+            //   で確実に close() する。
+            if (AppState.globalStream) {
+                AppState.globalStream.getTracks().forEach(track => track.stop());
+                AppState.globalStream = null;
+            }
+            if (AppState.rawMicStream) {
+                AppState.rawMicStream.getTracks().forEach(track => track.stop());
+                AppState.rawMicStream = null;
+            }
+            teardownAudioProcessingChain();
+
+            UI.statusText.innerHTML = "✨ 最後の音声データを保存・アップロード中...";
+            await AppState.audioSendQueue;
+
+            if (!window.appController) throw new Error("現場監督のプログラムが読み込まれていません。");
+
+            const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+            const templateType = UI.templateSelect.value;
+
+            UI.statusText.innerHTML = "🔊 音声データの保存確認とAI文字起こしを並行して進めています...（数分かかることがあります）";
+            UI.progressContainer.style.display = "block";
+            UI.progressTitle.innerHTML = "音声データの確認・AI文字起こし処理中...";
+
+            const [audioSettled, transcriptSettled] = await Promise.allSettled([
+                window.appController.finalizeAudioAndGetResult(meetingName),
+                window.appController.transcribeFromGeminiFileUris(meetingName, templateType)
+            ]);
+
+            const audioOk = audioSettled.status === 'fulfilled';
+            const transcriptOk = transcriptSettled.status === 'fulfilled' && !!transcriptSettled.value;
+
+            if (!audioOk) {
+                console.error("❌ 音声確定処理が失敗しました:", audioSettled.reason);
+            }
+            if (!transcriptOk) {
+                console.error(
+                    "❌ 文字起こし処理が失敗しました:",
+                    transcriptSettled.status === 'rejected' ? transcriptSettled.reason : "(結果なし)"
+                );
+            }
+
+            if (!audioOk && !transcriptOk) {
+                UI.progressTitle.innerHTML = "⚠️ 音声確認・文字起こしの両方に失敗しました";
+                UI.statusText.innerHTML = "エラー発生（お助けモードを確認してください）";
+                UI.statusText.style.color = "#fa5252";
+                alert(
+                    "音声データの確認と、AI文字起こしの両方に失敗しました。\n" +
+                    "録音の各セグメントは、録音中にドライブの「レコーダー/音声データ」フォルダ内の" +
+                    "会議名のついた専用フォルダへ、既に個別保存されている可能性が高いです。" +
+                    "お手数ですが、まずはそちらをご確認いただくか、「手動再開」からお試しください。\n\n" +
+                    "音声確認エラー: " + (audioOk ? "なし" : audioSettled.reason.message) + "\n" +
+                    "文字起こしエラー: " + (transcriptOk ? "なし" : (transcriptSettled.reason ? transcriptSettled.reason.message : "不明"))
+                );
+                return;
+            }
+
+            if (!audioOk) {
+                alert(
+                    "⚠️ 音声データの状態確認に失敗しましたが、文字起こし・議事録の生成は完了しました。\n" +
+                    "音声原本は録音中にドライブへ既に保存されているはずです。確認が必要な場合は" +
+                    "「手動再開」をお試しいただくか、ドライブの「レコーダー/音声データ」フォルダ内の" +
+                    "専用フォルダをご確認ください。"
+                );
+            }
+
+            if (!transcriptOk) {
+                UI.progressTitle.innerHTML = "🔊 音声データの保存は完了しています";
+                UI.statusText.innerHTML = "タップして新しい録音を開始";
+                UI.statusText.style.color = "#868e96";
+                UI.mainRecordBtn.style.display = "flex";
+                alert(
+                    "🔊 音声データの保存は確認できました！\n" +
+                    "ただし、AI文字起こし・議事録の生成には失敗しました。\n" +
+                    "「手動再開」から文字起こしを再度お試しいただけます。"
+                );
+                return;
+            }
+
+            const result = transcriptSettled.value;
+
+            UI.progressTitle.innerHTML = "🎉 処理が完了しました！";
+            UI.statusText.innerHTML = "タップして新しい録音を開始";
+            UI.statusText.style.color = "#868e96";
+            UI.mainRecordBtn.style.display = "flex";
+
+            if (result.audioWarning) {
+                alert("⚠️ 録音中に音声の一部保存でエラーが発生した可能性があります。音声データをご確認ください。");
+            }
+
+            if (result.transcriptionWarning) {
+                alert(
+                    "⚠️ 録音中に一部区間のAIアップロードが失敗していたため、その区間の内容は" +
+                    "文字起こし・議事録に反映されていません。（該当区間: セグメント " +
+                    (result.missingChunkIndexes || []).join(", ") + "）\n" +
+                    "該当区間の音声原本はドライブに保存されていますので、必要に応じてご確認ください。"
+                );
+            }
+
+            if (result.documentUrl) {
+                if (confirm("議事録と統合音声が完成しました！議事録ドキュメントを開きますか？")) {
+                    window.open(result.documentUrl, "_blank");
+                }
+            } else if (result.transcriptUrl) {
+                if (confirm("文字起こしと統合音声が完成しました！文字起こしドキュメントを開きますか？")) {
+                    window.open(result.transcriptUrl, "_blank");
+                }
+            } else {
+                alert("音声の保存が完了しました！(ドライブの「レコーダー」フォルダを確認してください)");
+            }
+
+        } catch (err) {
+            alert("エラーが発生しました: " + err.message + "\n（音声データは既に確定保存されている可能性があります）");
+            UI.statusText.innerHTML = "エラー発生（お助けモードを確認してください）";
+            UI.statusText.style.color = "#fa5252";
+        } finally {
+            stopPseudoSleepCycle();
+            releaseWakeLock();
+            document.body.classList.remove('recording-active');
+
+            UI.mainRecordBtn.style.display = "flex";
+            UI.mainRecordBtn.disabled = false;
+            AppState.isStopping = false;
+        }
+    }
+
+    function waitForRecorderToStop() {
+        return new Promise((resolve) => {
+            if (!AppState.recorder || AppState.recorder.state !== "recording") {
+                resolve();
+                return;
+            }
+
+            let settled = false;
+            const finalize = () => {
+                if (settled) return;
+                settled = true;
+                AppState._onRecorderStopped = null;
+                resolve();
+            };
+
+            AppState._onRecorderStopped = finalize;
+            AppState.recorder.stop();
+
+            setTimeout(finalize, 5000);
+        });
+    }
+
+    // ==========================================
+    // ⏱️ 経過時間表示（長時間録音の目安用）
+    // ==========================================
+    function startElapsedTimeDisplay() {
+        updateElapsedTimeText();
+        AppState.elapsedTimerId = setInterval(updateElapsedTimeText, 1000);
+    }
+    function stopElapsedTimeDisplay() {
+        if (AppState.elapsedTimerId) {
+            clearInterval(AppState.elapsedTimerId);
+            AppState.elapsedTimerId = null;
+        }
+        UI.elapsedTime.textContent = "";
+    }
+    function updateElapsedTimeText() {
+        if (!AppState.recordingStartedAt) return;
+        const sec = Math.floor((Date.now() - AppState.recordingStartedAt) / 1000);
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        UI.elapsedTime.textContent = `経過時間 ${h}:${m}:${s}`;
+
+        if (AppState.isPseudoSleeping) {
+            updateSleepOverlayElapsedText();
+        }
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve, _) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    function updateProgressUI(chunks) {
+        chunks.forEach(chunk => {
+            const dot = document.getElementById(`dot-${chunk.id}`);
+            if (dot) {
+                dot.className = 'dot';
+                if (chunk.status === 'processing') dot.classList.add('processing');
+                else if (chunk.status === 'completed') dot.classList.add('complete');
+                else if (chunk.status === 'error') dot.classList.add('error');
+            }
+        });
+    }
+
+    bindEvents();
+</script>
 </body>
 </html>
