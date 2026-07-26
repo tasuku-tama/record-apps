@@ -432,7 +432,12 @@ class RecorderController {
         this.saveState();
     }
 
-    async appendAudioChunk(base64Data, mimeType, meetingName, chunkIndex) {
+    // 🌟【バックグラウンド処理対応・テンプレート引き継ぎ】：
+    //   録音開始前に選択されたテンプレート種別（templateType）を
+    //   受け取り、GAS側に渡す。GAS側ではセッションフォルダの説明文に
+    //   保存され、バックグラウンド処理（processQueueTrigger）が
+    //   議事録生成時に読み出して使用する。
+    async appendAudioChunk(base64Data, mimeType, meetingName, chunkIndex, templateType) {
         if (!this.state.mimeType) {
             this.state.mimeType = mimeType || 'audio/webm';
         }
@@ -448,7 +453,8 @@ class RecorderController {
             audioData: base64Data,
             mimeType: mimeType || 'audio/webm',
             meetingName: meetingName || "無題の会議",
-            chunkIndex: chunkIndex
+            chunkIndex: chunkIndex,
+            templateType: templateType || "汎用議事録"
         };
 
         let lastError = null;
