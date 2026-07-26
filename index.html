@@ -1421,6 +1421,12 @@
 
     function handleSegmentComplete(segmentBlob, mimeType, segmentIndex) {
         const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+        // 🌟【バックグラウンド処理対応・テンプレート引き継ぎ】：
+        //   録音開始前（または録音中）に選択されているテンプレート
+        //   種別を、チャンク保存のたびにGAS側へ渡す。GAS側では
+        //   セッションフォルダの説明文に保存され、バックグラウンド
+        //   処理が議事録生成時にこれを使用する。
+        const templateType = UI.templateSelect.value || "汎用議事録";
 
         const dot = document.createElement('div');
         dot.className = 'dot';
@@ -1432,7 +1438,7 @@
 
             const results = await Promise.allSettled([
                 window.appController
-                    ? window.appController.appendAudioChunk(base64, mimeType, meetingName, segmentIndex)
+                    ? window.appController.appendAudioChunk(base64, mimeType, meetingName, segmentIndex, templateType)
                     : Promise.resolve(false),
                 window.appController
                     ? window.appController.uploadChunkToGeminiAndStore(base64, mimeType, segmentIndex)
@@ -1520,98 +1526,69 @@
             if (!window.appController) throw new Error("現場監督のプログラムが読み込まれていません。");
 
             const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
-            const templateType = UI.templateSelect.value;
 
-            UI.statusText.innerHTML = "🔊 音声データの保存確認とAI文字起こしを並行して進めています...（数分かかることがあります）";
+            // 🌟【バックグラウンド処理対応・全面改訂】：
+            //   従来はここで finalizeAudioAndGetResult と
+            //   transcribeFromGeminiFileUris を並行実行し、フロント
+            //   （このタブを開いたまま）で文字起こし・議事録生成まで
+            //   完走させていた。
+            //
+            //   これを、音声の確定保存（finalizeAudioAndGetResult）
+            //   のみ実行して即座に案内を出す方式に変更した。
+            //   文字起こし・議事録生成は、GAS側の時間主導型トリガー
+            //   （processQueueTrigger）がバックグラウンドで自動的に
+            //   検出・処理する。これにより、ユーザーは録音を止めたら
+            //   即座にアプリを閉じてよく、数分後にドライブの
+            //   「レコーダー/議事録等」フォルダを確認すれば結果が
+            //   置かれている、という体験になる。
+            UI.statusText.innerHTML = "🔊 音声データを確定保存しています...";
             UI.progressContainer.style.display = "block";
-            UI.progressTitle.innerHTML = "音声データの確認・AI文字起こし処理中...";
+            UI.progressTitle.innerHTML = "音声データの確認中...";
 
-            const [audioSettled, transcriptSettled] = await Promise.allSettled([
-                window.appController.finalizeAudioAndGetResult(meetingName),
-                window.appController.transcribeFromGeminiFileUris(meetingName, templateType)
-            ]);
-
-            const audioOk = audioSettled.status === 'fulfilled';
-            const transcriptOk = transcriptSettled.status === 'fulfilled' && !!transcriptSettled.value;
-
-            if (!audioOk) {
-                console.error("❌ 音声確定処理が失敗しました:", audioSettled.reason);
-            }
-            if (!transcriptOk) {
-                console.error(
-                    "❌ 文字起こし処理が失敗しました:",
-                    transcriptSettled.status === 'rejected' ? transcriptSettled.reason : "(結果なし)"
-                );
-            }
-
-            if (!audioOk && !transcriptOk) {
-                UI.progressTitle.innerHTML = "⚠️ 音声確認・文字起こしの両方に失敗しました";
+            let audioResult;
+            try {
+                audioResult = await window.appController.finalizeAudioAndGetResult(meetingName);
+            } catch (audioError) {
+                console.error("❌ 音声確定処理が失敗しました:", audioError);
+                UI.progressTitle.innerHTML = "⚠️ 音声データの確認に失敗しました";
                 UI.statusText.innerHTML = "エラー発生（お助けモードを確認してください）";
                 UI.statusText.style.color = "#fa5252";
                 alert(
-                    "音声データの確認と、AI文字起こしの両方に失敗しました。\n" +
+                    "音声データの確認に失敗しました。\n" +
                     "録音の各セグメントは、録音中にドライブの「レコーダー/音声データ」フォルダ内の" +
                     "会議名のついた専用フォルダへ、既に個別保存されている可能性が高いです。" +
                     "お手数ですが、まずはそちらをご確認いただくか、「手動再開」からお試しください。\n\n" +
-                    "音声確認エラー: " + (audioOk ? "なし" : audioSettled.reason.message) + "\n" +
-                    "文字起こしエラー: " + (transcriptOk ? "なし" : (transcriptSettled.reason ? transcriptSettled.reason.message : "不明"))
+                    "詳細: " + audioError.message
                 );
                 return;
             }
 
-            if (!audioOk) {
-                alert(
-                    "⚠️ 音声データの状態確認に失敗しましたが、文字起こし・議事録の生成は完了しました。\n" +
-                    "音声原本は録音中にドライブへ既に保存されているはずです。確認が必要な場合は" +
-                    "「手動再開」をお試しいただくか、ドライブの「レコーダー/音声データ」フォルダ内の" +
-                    "専用フォルダをご確認ください。"
-                );
-            }
-
-            if (!transcriptOk) {
-                UI.progressTitle.innerHTML = "🔊 音声データの保存は完了しています";
-                UI.statusText.innerHTML = "タップして新しい録音を開始";
-                UI.statusText.style.color = "#868e96";
-                UI.mainRecordBtn.style.display = "flex";
-                alert(
-                    "🔊 音声データの保存は確認できました！\n" +
-                    "ただし、AI文字起こし・議事録の生成には失敗しました。\n" +
-                    "「手動再開」から文字起こしを再度お試しいただけます。"
-                );
-                return;
-            }
-
-            const result = transcriptSettled.value;
-
-            UI.progressTitle.innerHTML = "🎉 処理が完了しました！";
+            UI.progressTitle.innerHTML = "✅ 音声データの確認が完了しました";
             UI.statusText.innerHTML = "タップして新しい録音を開始";
             UI.statusText.style.color = "#868e96";
             UI.mainRecordBtn.style.display = "flex";
 
-            if (result.audioWarning) {
+            if (window.appController.audioAppendFailures && window.appController.audioAppendFailures.length > 0) {
                 alert("⚠️ 録音中に音声の一部保存でエラーが発生した可能性があります。音声データをご確認ください。");
             }
 
-            if (result.transcriptionWarning) {
+            const missingChunks = window.appController.detectMissingChunks();
+            if (missingChunks.length > 0) {
                 alert(
                     "⚠️ 録音中に一部区間のAIアップロードが失敗していたため、その区間の内容は" +
-                    "文字起こし・議事録に反映されていません。（該当区間: セグメント " +
-                    (result.missingChunkIndexes || []).join(", ") + "）\n" +
+                    "文字起こし・議事録に反映されない可能性があります。（該当区間: セグメント " +
+                    missingChunks.join(", ") + "）\n" +
                     "該当区間の音声原本はドライブに保存されていますので、必要に応じてご確認ください。"
                 );
             }
 
-            if (result.documentUrl) {
-                if (confirm("議事録と統合音声が完成しました！議事録ドキュメントを開きますか？")) {
-                    window.open(result.documentUrl, "_blank");
-                }
-            } else if (result.transcriptUrl) {
-                if (confirm("文字起こしと統合音声が完成しました！文字起こしドキュメントを開きますか？")) {
-                    window.open(result.transcriptUrl, "_blank");
-                }
-            } else {
-                alert("音声の保存が完了しました！(ドライブの「レコーダー」フォルダを確認してください)");
-            }
+            alert(
+                "🎉 音声データの確認が完了しました！\n\n" +
+                "文字起こし・議事録の生成は、これからバックグラウンドで自動的に" +
+                "処理されます。このアプリを閉じていただいて構いません。\n\n" +
+                "数分後、Googleドライブの「レコーダー/議事録等」フォルダに" +
+                "議事録が自動的に作成されますので、そちらをご確認ください。"
+            );
 
         } catch (err) {
             alert("エラーが発生しました: " + err.message + "\n（音声データは既に確定保存されている可能性があります）");
