@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>レコーダーアプリ</title>
+    <title>らくらく議事録 | Effortless Care DX</title>
     <style>
+        /* ==========================================
+           🎨 見た目リニューアル対応（今回の変更点）：
+           ・「Webアプリ感」を減らし、ミニマル・プロフェッショナルな
+             質感を目指した全面的なデザイン刷新。
+           ・企業ロゴ（Effortless Care DXのECDマーク）をヘッダーに
+             追加し、アプリタイトルは「らくらく議事録」に変更。
+             企業名とアプリタイトルは上下2段構成で分離配置。
+           ・アクセントカラーはロゴのオレンジ系統から、彩度を抑えた
+             落ち着いたトーン（#c07f45系）を採用。全体はモノトーン
+             （白・グレー階調）を基調とし、要所にのみアクセントを使う。
+           ・単純なフラットデザインではなく、背景のグラデーション、
+             カードの二重構造、ボタンの陰影・グラデーションなど、
+             階層感・質感（リッチさ）を持たせている。
+           ・フッターに © 2026 Effortless Care DX を追加。
+           ========================================== */
+
         /* ==========================================
            🎨 ベース設定 ＆ レイアウト
            ========================================== */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #495057;
+            background-color: #eeede8;
+            color: #3a3a38;
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,46 +36,117 @@
             min-height: 100dvh;
         }
 
+        /* 🌟 外枠：うっすらとしたグラデーションの「額縁」。
+           この上にapp-container（白いカード本体）を重ねることで、
+           二重構造の階層感を演出する。 */
+        .app-shell {
+            width: 100%;
+            max-width: 488px;
+            min-height: 100dvh;
+            background: linear-gradient(180deg, #fafaf8 0%, #f0efea 100%);
+            padding: 4px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 520px) {
+            .app-shell {
+                min-height: auto;
+                height: 92vh;
+                border-radius: 28px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+                overflow: hidden;
+            }
+        }
+
         .app-container {
             background-color: #ffffff;
             width: 100%;
-            max-width: 480px;
-            min-height: 100dvh;
-            padding: 40px 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            padding: 32px 24px 20px;
             display: flex;
             flex-direction: column;
             position: relative;
             box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
         }
 
-        @media (min-width: 500px) {
+        @media (min-width: 520px) {
             .app-container {
-                min-height: auto;
-                height: 90vh;
-                border-radius: 32px;
+                border-radius: 24px;
                 overflow-y: auto;
             }
         }
 
+        /* 🌟 ロゴカラー（オレンジ〜黄〜黄緑）を使った、控えめな
+           背景の光の演出。カード右上に、ごく淡く滲ませる。 */
+        .app-container::before {
+            content: "";
+            position: absolute;
+            top: -70px;
+            right: -70px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(224, 138, 63, 0.07) 0%, rgba(224, 138, 63, 0) 70%);
+            pointer-events: none;
+        }
+
         /* ==========================================
            🎨 ヘッダー ＆ ボタン
+           🌟【見た目リニューアル対応】：
+           従来は h2（絵文字＋「レコーダー」）のみのシンプルな構成
+           だったが、企業ロゴ・企業名・アプリタイトルの3要素を
+           上下2段で構成するデザインに変更した。
+           上段：ロゴマーク＋企業名（小さく、控えめなグレー）
+           下段：アプリタイトル「らくらく議事録」（太字・大きめ）
            ========================================== */
         .header {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 28px;
+            position: relative;
+        }
+        .header-brand-row {
+            display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            gap: 6px;
+            margin-bottom: 7px;
+        }
+        .header-logo-mark {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e89b4f 0%, #e8bf5c 50%, #a8c95e 100%);
+            box-shadow: 0 2px 4px rgba(224, 138, 63, 0.25);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .header-logo-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .header-brand-name {
+            font-size: 10px;
+            color: #a8a79f;
+            letter-spacing: 0.4px;
+            font-weight: 500;
+            text-transform: uppercase;
         }
         .header h2 {
             margin: 0;
-            font-size: 24px;
-            color: #212529;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            font-size: 21px;
+            color: #2d2d2b;
+            font-weight: 700;
+            letter-spacing: -0.4px;
         }
         
-        .header-actions { position: relative; display: flex; align-items: center; }
+        .header-actions { position: relative; display: flex; align-items: center; margin-top: 2px; }
 
         /* 🌟【見た目調整対応・新設】：
            ヘッダーの「⋮」ボタンから開くドロップダウンメニュー。
@@ -73,9 +160,9 @@
             right: 0;
             min-width: 180px;
             background-color: #ffffff;
-            border: 1px solid #e9ecef;
+            border: 1px solid #eeede8;
             border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
             padding: 6px;
             z-index: 100;
         }
@@ -94,13 +181,13 @@
             border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
-            color: #495057;
+            color: #4a4a48;
             text-align: left;
             cursor: pointer;
             transition: background-color 0.15s ease;
         }
         .header-menu-item:hover {
-            background-color: #f1f3f5;
+            background-color: #faf9f6;
         }
         .header-menu-icon {
             font-size: 15px;
@@ -125,33 +212,40 @@
         }
 
         .btn-icon {
-            background: #f1f3f5; border: none; width: 40px; height: 40px;
-            border-radius: 50%; font-size: 18px; cursor: pointer;
+            background: #faf9f6; border: 1px solid #eeede7; width: 34px; height: 34px;
+            border-radius: 50%; font-size: 16px; cursor: pointer;
             transition: all 0.2s ease; display: flex; justify-content: center; align-items: center;
+            color: #8a8a8a; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
-        .btn-icon:hover { background: #e9ecef; transform: scale(1.05); }
+        .btn-icon:hover { background: #f3f2ee; transform: scale(1.05); }
 
         .btn-pill {
-            background: #fff; border: 2px solid #e9ecef; padding: 8px 16px;
-            border-radius: 20px; font-size: 13px; font-weight: bold; color: #495057;
+            background: #fff; border: 1px solid #eeede7; padding: 8px 16px;
+            border-radius: 20px; font-size: 13px; font-weight: 600; color: #5a5a58;
             cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
-        .btn-pill:hover { border-color: #fab005; color: #fab005; background: #fff9db; }
+        .btn-pill:hover { border-color: #d99a5e; color: #c07f45; background: #fdf8f2; }
 
         /* ==========================================
            🎨 入力フォーム ＆ 音声入力ボタン
+           🌟【見た目リニューアル対応】：
+           境界線を薄く・柔らかく、フォーカス時の強調色を
+           アクセントオレンジ系に変更。内側にごく薄い陰影を
+           入れ、彫り込まれたような質感を持たせている。
            ========================================== */
         .input-group { margin-bottom: 20px; }
         .input-group label {
-            display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #868e96;
+            display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; color: #9a9a9a;
         }
         input[type="text"], select {
-            width: 100%; padding: 16px; border: 2px solid #f1f3f5; border-radius: 16px;
-            font-size: 16px; color: #495057; background-color: #f8f9fa;
+            width: 100%; padding: 14px 15px; border: 1px solid #eeede7; border-radius: 12px;
+            font-size: 15px; color: #3a3a38; background-color: #faf9f6;
             transition: all 0.2s ease; box-sizing: border-box; outline: none;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
         }
         input[type="text"]:focus, select:focus {
-            border-color: #74c0fc; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(116, 192, 252, 0.15);
+            border-color: #d99a5e; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(217, 154, 94, 0.12);
         }
 
         .input-with-icon {
@@ -166,66 +260,74 @@
             position: absolute;
             right: 8px;
             background: #fff;
-            border: 2px solid #f1f3f5;
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            font-size: 16px;
+            border: 1px solid #eeede7;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #495057;
+            color: #7a7a78;
         }
-        .mini-mic-btn:hover { background: #f8f9fa; border-color: #dee2e6; }
+        .mini-mic-btn:hover { background: #faf9f6; border-color: #e2e1da; }
         .mini-mic-btn.listening {
-            background: #fa5252;
-            border-color: #fa5252;
+            background: #c0604a;
+            border-color: #c0604a;
             color: white;
             animation: pulseMini 1.5s infinite;
         }
         @keyframes pulseMini {
-            0% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.5); }
-            70% { box-shadow: 0 0 0 10px rgba(250, 82, 82, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(192, 96, 74, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(192, 96, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(192, 96, 74, 0); }
         }
 
         /* ==========================================
            🎨 メイン録音エリア
+           🌟【見た目リニューアル対応】：
+           録音ボタンを、ロゴのアクセントカラー（控えめなオレンジ）を
+           使った、多層の陰影・内側ハイライトを持つボタンに変更した。
+           単純なフラットカラーではなく、グラデーション＋複数の
+           box-shadowレイヤーで立体感・質感を出している。
            ========================================== */
         .record-area {
             flex-grow: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; margin: 40px 0;
+            justify-content: center; align-items: center; margin: 32px 0 24px;
         }
         .record-btn {
-            width: 120px; height: 120px; border-radius: 50%; border: none;
-            background: linear-gradient(135deg, #74c0fc, #4dabf7); color: white;
-            font-size: 48px; cursor: pointer; box-shadow: 0 10px 20px rgba(77, 171, 247, 0.3);
+            width: 116px; height: 116px; border-radius: 50%; border: none;
+            background: linear-gradient(160deg, #d99a5e 0%, #c07f45 100%); color: white;
+            font-size: 44px; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(192, 127, 69, 0.30), 0 2px 6px rgba(192, 127, 69, 0.20),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.30);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; justify-content: center; align-items: center;
         }
-        .record-btn:active { transform: scale(0.9); }
+        .record-btn:active { transform: scale(0.94); }
         .record-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .record-btn.recording {
-            background: linear-gradient(135deg, #ff8787, #fa5252);
-            box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7);
-            animation: pulse 1.5s infinite;
+            background: linear-gradient(160deg, #cf6a52 0%, #b04c38 100%);
+            box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0.5),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.25);
+            animation: pulse 1.8s infinite;
         }
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7); }
-            70% { box-shadow: 0 0 0 25px rgba(250, 82, 82, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(250, 82, 82, 0); }
+            0% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0.45), inset 0 1px 2px rgba(255,255,255,0.25); }
+            70% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 22px rgba(176, 76, 56, 0), inset 0 1px 2px rgba(255,255,255,0.25); }
+            100% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0), inset 0 1px 2px rgba(255,255,255,0.25); }
         }
 
         .status-text {
-            margin-top: 24px; font-size: 16px; font-weight: 600;
-            color: #868e96; text-align: center; min-height: 24px;
+            margin-top: 20px; font-size: 14px; font-weight: 600;
+            color: #9a9a9a; text-align: center; min-height: 24px;
         }
 
         .elapsed-time {
-            margin-top: 8px; font-size: 13px; color: #adb5bd; text-align: center;
+            margin-top: 8px; font-size: 13px; color: #b8b7ae; text-align: center;
         }
 
         .wake-lock-warning {
@@ -258,18 +360,32 @@
            抑えるため、録音中は背景を暗いトーンに切り替える。
            有機ELディスプレイでは黒に近い表示ほど消費電力が下がるため、
            特にモバイル端末での長時間録音時に効果が期待できる。
+           🌟【見た目リニューアル対応】：
+           app-shell（外枠）・header-brand-name（企業名表記）にも
+           ダークトーン対応を追加した。ロゴ画像はそのまま使用し、
+           暗い背景に対してコントラストを保てるよう周囲の余白と
+           シャドウで視認性を確保する。
            ========================================== */
         body.recording-active {
             background-color: #16181c;
             transition: background-color 0.4s ease;
+        }
+        body.recording-active .app-shell {
+            background: linear-gradient(180deg, #1c1e22 0%, #16181c 100%);
         }
         body.recording-active .app-container {
             background-color: #1c1e22;
             color: #d0d3d8;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
         }
+        body.recording-active .app-container::before {
+            background: radial-gradient(circle, rgba(224, 138, 63, 0.10) 0%, rgba(224, 138, 63, 0) 70%);
+        }
         body.recording-active .header h2 {
             color: #e8eaed;
+        }
+        body.recording-active .header-brand-name {
+            color: #6a6f78;
         }
         body.recording-active .btn-icon,
         body.recording-active .btn-pill {
@@ -296,6 +412,10 @@
             background: #3a2f00;
             border-color: #7c5c00;
             color: #ffd43b;
+        }
+        body.recording-active .app-footer {
+            color: #5a5d64;
+            border-top-color: #2a2d33;
         }
 
         /* ==========================================
@@ -350,45 +470,48 @@
 
         /* ==========================================
            🎨 進捗表示 ＆ パネル群
+           🌟【見た目リニューアル対応】：配色をモノトーン＋
+           控えめなアクセントカラーに統一。ドットの色も
+           鮮やかな青緑からトーンを落とした色に変更。
            ========================================== */
         .progress-container {
-            display: none; background-color: #f8f9fa; padding: 24px;
-            border-radius: 20px; margin-top: 20px;
+            display: none; background-color: #faf9f6; padding: 22px;
+            border-radius: 16px; margin-top: 18px; border: 1px solid #f0efea;
         }
         .progress-title {
-            font-size: 14px; font-weight: 700; color: #495057;
+            font-size: 14px; font-weight: 700; color: #5a5a58;
             margin-bottom: 16px; text-align: center;
         }
         .dots-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
         .dot {
-            width: 18px; height: 18px; border-radius: 50%;
-            background-color: #dee2e6; transition: all 0.4s ease;
+            width: 16px; height: 16px; border-radius: 50%;
+            background-color: #e2e1da; transition: all 0.4s ease;
         }
         .dot.processing {
-            background-color: #4dabf7; box-shadow: 0 0 8px rgba(77, 171, 247, 0.6);
+            background-color: #d99a5e; box-shadow: 0 0 8px rgba(217, 154, 94, 0.5);
             animation: bounce 1s infinite alternate;
         }
-        .dot.complete { background-color: #40c057; transform: scale(1.1); }
-        .dot.error { background-color: #fab005; }
+        .dot.complete { background-color: #8fae5c; transform: scale(1.1); }
+        .dot.error { background-color: #cf9a4a; }
         @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-4px); } }
 
         .recovery-panel {
-            display: none; margin-top: 20px; padding: 20px;
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 20px;
+            display: none; margin-top: 18px; padding: 20px;
+            background: rgba(250, 249, 246, 0.85); backdrop-filter: blur(10px);
+            border: 1px solid #f0efea; border-radius: 18px;
         }
         .recovery-panel h4 { margin: 0 0 10px 0; font-size: 15px; }
-        .recovery-panel.help h4 { color: #fab005; }
-        .recovery-panel.settings h4 { color: #4dabf7; }
+        .recovery-panel.help h4 { color: #c07f45; }
+        .recovery-panel.settings h4 { color: #6a6f78; }
         
         .recovery-btn {
             width: 100%; padding: 14px; margin-top: 10px;
-            background-color: #fff; border: 2px solid #f1f3f5;
-            border-radius: 12px; font-weight: bold; color: #495057;
+            background-color: #fff; border: 1px solid #eeede7;
+            border-radius: 12px; font-weight: 600; color: #5a5a58;
             cursor: pointer; transition: all 0.2s;
         }
-        .recovery-panel.help .recovery-btn:hover { border-color: #fab005; color: #fab005; }
-        .recovery-panel.settings .recovery-btn:hover { border-color: #4dabf7; color: #4dabf7; background: #e7f5ff; }
+        .recovery-panel.help .recovery-btn:hover { border-color: #d99a5e; color: #c07f45; }
+        .recovery-panel.settings .recovery-btn:hover { border-color: #b5b4ac; color: #6a6f78; background: #faf9f6; }
         
         .fade-in { animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -407,7 +530,7 @@
             display: none;
         }
         .recovery-panel.diagnostics h4 {
-            color: #868e96;
+            color: #9a9a9a;
         }
         .diagnostics-textarea {
             width: 100%;
@@ -417,10 +540,10 @@
             font-size: 11px;
             line-height: 1.5;
             padding: 12px;
-            border: 2px solid #f1f3f5;
+            border: 1px solid #eeede7;
             border-radius: 12px;
-            background-color: #f8f9fa;
-            color: #495057;
+            background-color: #faf9f6;
+            color: #5a5a58;
             resize: vertical;
             white-space: pre;
         }
@@ -430,21 +553,48 @@
             color: #d0d3d8;
         }
         .recovery-panel.diagnostics .recovery-btn:hover {
-            border-color: #868e96; color: #495057; background: #f1f3f5;
+            border-color: #b5b4ac; color: #6a6f78; background: #faf9f6;
         }
         /* 🌟 診断アイコンボタンが押されている（パネル表示中）ことが
            視覚的に分かるよう、他のアイコンボタンと差別化する状態色。 */
         .btn-icon.active-panel {
-            background: #e7f5ff;
-            color: #4dabf7;
+            background: #fdf2e9;
+            color: #c07f45;
+        }
+
+        /* ==========================================
+           🎨 フッター
+           🌟【見た目リニューアル対応・新設】：
+           © 2026 Effortless Care DX の著作権表記。
+           控えめな薄いグレーで、アプリ本体の操作を邪魔しない
+           位置（画面最下部）に配置する。
+           ========================================== */
+        .app-footer {
+            text-align: center;
+            font-size: 10px;
+            color: #c3c2bd;
+            letter-spacing: 0.2px;
+            padding: 16px 0 4px;
+            margin-top: auto;
+            border-top: 1px solid #f2f1ec;
         }
     </style>
 </head>
+
 <body>
 
+<div class="app-shell">
 <div class="app-container">
     <div class="header">
-        <h2>🎙 レコーダー</h2>
+        <div>
+            <div class="header-brand-row">
+                <span class="header-logo-mark">
+                    <img src="img/logo_icon.png" alt="Effortless Care DX">
+                </span>
+                <span class="header-brand-name">Effortless Care DX</span>
+            </div>
+            <h2>らくらく議事録</h2>
+        </div>
         <!-- 🌟【見た目調整対応・変更点】：
              従来はタイトルと「手動再開・診断情報・設定」の3ボタンが
              同じ行に横並びになっており、スマホの画面幅ではタイトルが
@@ -544,6 +694,10 @@
             <button class="recovery-btn" id="saveSettingsBtn">設定を保存して閉じる</button>
         </div>
     </div>
+
+    <!-- 🌟【見た目リニューアル対応・新設】：著作権表記フッター -->
+    <div class="app-footer">© 2026 Effortless Care DX</div>
+</div>
 </div>
 
 <!-- 🌑 疑似スリープオーバーレイ：録音中、一定時間操作がないと表示される -->
