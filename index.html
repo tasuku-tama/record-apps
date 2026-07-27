@@ -1104,6 +1104,15 @@
         }
     }
 
+    // 🌟【不具合修正・自動フォールバック対応】：
+    //   録音中にGeminiへアップロード済みだった fileUri（localStorageに
+    //   永続化されている）を使って再開する経路。
+    //   バックグラウンド処理の導入に伴い、この fileUri が既に
+    //   無効になっている（Gemini側で削除済み、または元々別の理由で
+    //   使用不可）ケースが発生しうる。その場合、単にエラーを表示する
+    //   のではなく、ドライブに確定保存済みの音声ファイルから
+    //   再アップロードして再開する経路（runRecoveryTranscriptPending
+    //   相当の処理）に自動的にフォールバックする。
     async function runRecoveryFromGeminiFileUris(meetingName, templateType) {
         UI.recoveryActionBtn.disabled = true;
         UI.recoveryStatusText.innerHTML = "✨ アップロード済みの音声データから文字起こし中です...（数分かかることがあります）";
@@ -1120,9 +1129,34 @@
                     "⚠️ 処理がスキップされました（既に処理中か、確定済みの可能性があります）。";
             }
         } catch (err) {
-            console.error("❌ お助けモード：fileUriからの文字起こし再開に失敗しました", err);
+            console.error("❌ お助けモード：fileUriからの文字起こし再開に失敗しました。ドライブからの再開にフォールバックします。", err);
+
+            // 🌟 アップロード済みfileUriが無効だった可能性が高いため、
+            //   localStorageに残っている古い状態をクリアし、
+            //   ドライブ上に保存済みの音声フォルダを探して
+            //   そちらから再開する経路にフォールバックする。
             UI.recoveryStatusText.innerHTML =
-                "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
+                "⚠️ アップロード済みデータでの再開に失敗しました。<br>" +
+                "ドライブに保存されている音声データからの再開を試みます...（数分かかることがあります）";
+
+            try {
+                const statusResult = await window.appController.checkSessionStatus();
+
+                if (statusResult.status === "audio_saved" && statusResult.audioFolderId) {
+                    await runRecoveryTranscriptPending(
+                        statusResult.audioFolderId, meetingName, templateType
+                    );
+                } else {
+                    UI.recoveryStatusText.innerHTML =
+                        "⚠️ ドライブ側にも対応する音声データが見つかりませんでした。<br>" +
+                        "お手数ですが、Googleドライブの「レコーダー/音声データ」フォルダを直接ご確認ください。<br>" +
+                        "詳細: " + err.message;
+                }
+            } catch (fallbackErr) {
+                console.error("❌ お助けモード：ドライブからのフォールバックにも失敗しました", fallbackErr);
+                UI.recoveryStatusText.innerHTML =
+                    "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + fallbackErr.message;
+            }
         } finally {
             UI.recoveryActionBtn.disabled = false;
         }
