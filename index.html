@@ -6,158 +6,278 @@
     <title>らくらく議事録 | Effortless Care DX</title>
     <style>
         /* ==========================================
-           🎨 見た目リニューアル対応：
-           ・「Webアプリ感」を減らし、ミニマル・プロフェッショナルな
-             質感を目指した全面的なデザイン刷新。
-           ・企業ロゴ（Effortless Care DXのECDマーク）をヘッダーに
-             追加し、アプリタイトルは「らくらく議事録」に変更。
-             企業名とアプリタイトルは上下2段構成で分離配置。
-           ・アクセントカラーはロゴのオレンジ系統から、彩度を抑えた
-             落ち着いたトーン（#c07f45系）を採用。全体はモノトーン
-             （白・グレー階調）を基調とし、要所にのみアクセントを使う。
-           ・単純なフラットデザインではなく、背景のグラデーション、
-             カードの二重構造、ボタンの陰影・グラデーションなど、
-             階層感・質感（リッチさ）を持たせている。
-           ・フッターに © 2026 Effortless Care DX を追加。
+           🎨 デザインテーマ：案A ラグジュアリー・ウォームモダン
+           ・Effortless Care DX のブランドトーン（アンバー・シャンパンゴールド・
+             リーフグリーン）を継承・深化させたプロスタジオ品質のUI。
+           ・全絵文字をカスタムベクターSVGに刷新。
+           ・グラスモーフィズム（すりガラス）＋多層アンビエントシャドウ＋
+             メタリックベゼルによる立体感。
+           ・マイク入力の音量にリアルタイム連動する「オーディオ・コア」＆
+             12バンド・スペクトラムビジュアライザーを搭載。
+           ・録音中は有機EL省電力の「プロスタジオ・ダークモード」へ遷移。
            ========================================== */
 
-        /* ==========================================
-           🎨 ベース設定 ＆ レイアウト
-           ========================================== */
+        :root {
+            --bg-outer-start: #e8e5dd;
+            --bg-outer-end: #dad6cc;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: rgba(255, 255, 255, 0.85);
+            --surface-subtle: #f7f5f0;
+            --surface-input: #f9f8f5;
+            --border-light: #e8e5dc;
+            --border-focus: #c88746;
+            --text-primary: #232220;
+            --text-secondary: #6e6c66;
+            --text-muted: #9c9a92;
+            --accent-amber: #d48b45;
+            --accent-copper: #b56c2b;
+            --accent-gold: #e6b85c;
+            --accent-green: #7fa650;
+            --rec-crimson: #d94838;
+            --rec-crimson-dark: #a6291b;
+            --shadow-ambient: 0 24px 64px rgba(35, 30, 22, 0.10), 0 4px 16px rgba(35, 30, 22, 0.05);
+            --shadow-card-inner: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #eeede8;
-            color: #3a3a38;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            background: radial-gradient(circle at 20% 10%, #f2efe9 0%, var(--bg-outer-start) 45%, var(--bg-outer-end) 100%);
+            color: var(--text-primary);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100dvh;
+            transition: background 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 🌟 外枠：うっすらとしたグラデーションの「額縁」。
-           この上にapp-container（白いカード本体）を重ねることで、
-           二重構造の階層感を演出する。 */
+        /* 🌟 外枠：上質なシャンパンフレーム */
         .app-shell {
             width: 100%;
-            max-width: 488px;
+            max-width: 492px;
             min-height: 100dvh;
-            background: linear-gradient(180deg, #fafaf8 0%, #f0efea 100%);
-            padding: 4px;
+            background: linear-gradient(165deg, rgba(255,255,255,0.75) 0%, rgba(238,235,226,0.55) 100%);
+            padding: 5px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         @media (min-width: 520px) {
             .app-shell {
                 min-height: auto;
-                height: 92vh;
-                border-radius: 28px;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+                height: 93vh;
+                max-height: 880px;
+                border-radius: 34px;
+                box-shadow: var(--shadow-ambient), 0 0 0 1px rgba(255, 255, 255, 0.6);
                 overflow: hidden;
             }
         }
 
         .app-container {
-            background-color: #ffffff;
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             width: 100%;
             flex: 1;
-            padding: 32px 24px 20px;
+            padding: 28px 24px 18px;
             display: flex;
             flex-direction: column;
             position: relative;
             box-sizing: border-box;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
+            box-shadow: var(--shadow-card-inner), 0 2px 10px rgba(0, 0, 0, 0.03);
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
         }
 
         @media (min-width: 520px) {
             .app-container {
-                border-radius: 24px;
-                overflow-y: auto;
+                border-radius: 29px;
             }
         }
 
-        /* 🌟 ロゴカラー（オレンジ〜黄〜黄緑）を使った、控えめな
-           背景の光の演出。カード右上に、ごく淡く滲ませる。 */
+        /* 🌟 背景のアンビエント・オーロラ光（右上：アンバーゴールド、左下：リーフグリーン） */
         .app-container::before {
             content: "";
             position: absolute;
-            top: -70px;
-            right: -70px;
-            width: 220px;
-            height: 220px;
+            top: -90px;
+            right: -80px;
+            width: 260px;
+            height: 260px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(224, 138, 63, 0.07) 0%, rgba(224, 138, 63, 0) 70%);
+            background: radial-gradient(circle, rgba(212, 139, 69, 0.13) 0%, rgba(230, 184, 92, 0.05) 45%, rgba(212, 139, 69, 0) 72%);
             pointer-events: none;
+            z-index: 0;
+            transition: background 0.5s ease;
+        }
+        .app-container::after {
+            content: "";
+            position: absolute;
+            bottom: -100px;
+            left: -90px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(127, 166, 80, 0.08) 0%, rgba(127, 166, 80, 0) 70%);
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.5s ease;
         }
 
         /* ==========================================
-           🎨 ヘッダー ＆ ボタン
-           上段：ロゴマーク＋企業名（小さく、控えめなグレー）
-           下段：アプリタイトル「らくらく議事録」（太字・大きめ）
+           🎨 ヘッダー ＆ ブランドロゴ
            ========================================== */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 28px;
+            margin-bottom: 22px;
             position: relative;
+            z-index: 20;
         }
         .header-brand-row {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 7px;
+            gap: 8px;
+            margin-bottom: 6px;
         }
         .header-logo-mark {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #e89b4f 0%, #e8bf5c 50%, #a8c95e 100%);
-            box-shadow: 0 2px 4px rgba(224, 138, 63, 0.25);
+            padding: 1.5px;
+            background: linear-gradient(135deg, #e89b4f 0%, #e8bf5c 50%, #8fb855 100%);
+            box-shadow: 0 2px 8px rgba(212, 139, 69, 0.30);
             flex-shrink: 0;
             overflow: hidden;
+            box-sizing: border-box;
         }
         .header-logo-mark img {
             width: 100%;
             height: 100%;
+            border-radius: 50%;
             object-fit: cover;
             display: block;
+            background: #fff;
         }
         .header-brand-name {
-            font-size: 10px;
-            color: #a8a79f;
-            letter-spacing: 0.4px;
-            font-weight: 500;
+            font-size: 10.5px;
+            color: var(--text-muted);
+            letter-spacing: 1.2px;
+            font-weight: 700;
             text-transform: uppercase;
+        }
+        .header-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .header h2 {
             margin: 0;
-            font-size: 21px;
-            color: #2d2d2b;
-            font-weight: 700;
-            letter-spacing: -0.4px;
+            font-size: 22px;
+            color: var(--text-primary);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #232220 0%, #4a4742 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        
-        .header-actions { position: relative; display: flex; align-items: center; margin-top: 2px; }
+        .header-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            background: rgba(212, 139, 69, 0.12);
+            color: var(--accent-copper);
+            border: 1px solid rgba(212, 139, 69, 0.25);
+            transition: all 0.3s ease;
+        }
+        .header-live-badge .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-amber);
+        }
 
-        /* 🌟 ヘッダーの「⋮」ボタンから開くドロップダウンメニュー。
-           手動再開・診断情報・設定の3項目をここに集約する。 */
+        .header-actions {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-top: 2px;
+        }
+
+        .btn-icon {
+            background: linear-gradient(180deg, #ffffff 0%, #f5f3ee 100%);
+            border: 1px solid var(--border-light);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            padding: 0;
+        }
+        .btn-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+        .btn-icon:hover {
+            border-color: #d9ccb8;
+            color: var(--accent-copper);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(181, 108, 43, 0.10), inset 0 1px 0 #fff;
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+        #headerMenuBtn.active-panel,
+        .btn-icon.active-panel {
+            background: linear-gradient(135deg, #fdf6ee 0%, #f7e8d6 100%);
+            border-color: rgba(212, 139, 69, 0.45);
+            color: var(--accent-copper);
+            box-shadow: 0 0 0 3px rgba(212, 139, 69, 0.12);
+        }
+
+        /* 🌟 ドロップダウンメニュー（すりガラス仕様） */
         .header-menu {
             display: none;
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 10px);
             right: 0;
-            min-width: 180px;
-            background-color: #ffffff;
-            border: 1px solid #eeede8;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
-            padding: 6px;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 229, 220, 0.9);
+            border-radius: 18px;
+            box-shadow: 0 16px 36px rgba(28, 25, 20, 0.14), 0 2px 8px rgba(28, 25, 20, 0.06), inset 0 1px 0 #fff;
+            padding: 7px;
             z-index: 100;
+            transform-origin: top right;
+            animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes menuPop {
+            from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .header-menu.open {
             display: block;
@@ -165,75 +285,115 @@
         .header-menu-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 11px;
             width: 100%;
             box-sizing: border-box;
-            padding: 10px 12px;
+            padding: 11px 13px;
             background: none;
             border: none;
-            border-radius: 10px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 13.5px;
             font-weight: 600;
-            color: #4a4a48;
+            color: var(--text-primary);
             text-align: left;
             cursor: pointer;
-            transition: background-color 0.15s ease;
+            transition: all 0.16s ease;
         }
         .header-menu-item:hover {
-            background-color: #faf9f6;
+            background: rgba(212, 139, 69, 0.10);
+            color: var(--accent-copper);
         }
         .header-menu-icon {
-            font-size: 15px;
-            width: 20px;
-            text-align: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--surface-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-copper);
+            flex-shrink: 0;
+            transition: all 0.16s ease;
         }
-        body.recording-active .header-menu {
-            background-color: #1c1e22;
-            border-color: #3a3d44;
+        .header-menu-item:hover .header-menu-icon {
+            background: linear-gradient(135deg, var(--accent-amber), var(--accent-copper));
+            color: #fff;
         }
-        body.recording-active .header-menu-item {
-            color: #d0d3d8;
+        .header-menu-icon svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
         }
-        body.recording-active .header-menu-item:hover {
-            background-color: #2a2d33;
-        }
-        /* 🌟 メニュー展開中は「⋮」ボタンも強調色にする。 */
-        #headerMenuBtn.active-panel {
-            background: #e7f5ff;
-            color: #4dabf7;
-        }
-
-        .btn-icon {
-            background: #faf9f6; border: 1px solid #eeede7; width: 34px; height: 34px;
-            border-radius: 50%; font-size: 16px; cursor: pointer;
-            transition: all 0.2s ease; display: flex; justify-content: center; align-items: center;
-            color: #8a8a8a; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-        }
-        .btn-icon:hover { background: #f3f2ee; transform: scale(1.05); }
-
-        .btn-pill {
-            background: #fff; border: 1px solid #eeede7; padding: 8px 16px;
-            border-radius: 20px; font-size: 13px; font-weight: 600; color: #5a5a58;
-            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-        }
-        .btn-pill:hover { border-color: #d99a5e; color: #c07f45; background: #fdf8f2; }
 
         /* ==========================================
-           🎨 入力フォーム ＆ 音声入力ボタン
+           🎨 入力フォーム ＆ 音声入力ボタン（フローティンググラス調）
            ========================================== */
-        .input-group { margin-bottom: 20px; }
-        .input-group label {
-            display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; color: #9a9a9a;
+        .controls-card {
+            background: rgba(249, 248, 244, 0.72);
+            border: 1px solid rgba(232, 229, 220, 0.85);
+            border-radius: 20px;
+            padding: 16px 16px 4px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 8px rgba(0, 0, 0, 0.02);
+            position: relative;
+            z-index: 5;
+            transition: all 0.4s ease;
         }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.2px;
+        }
+        .input-group label svg {
+            width: 13px;
+            height: 13px;
+            stroke: var(--accent-amber);
+            stroke-width: 2.2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
         input[type="text"], select {
-            width: 100%; padding: 14px 15px; border: 1px solid #eeede7; border-radius: 12px;
-            font-size: 15px; color: #3a3a38; background-color: #faf9f6;
-            transition: all 0.2s ease; box-sizing: border-box; outline: none;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+            width: 100%;
+            padding: 12.5px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 13px;
+            font-size: 14.5px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239c9a92' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 13px center;
+            cursor: pointer;
+        }
+        input[type="text"]::placeholder {
+            color: #b8b5ac;
+            font-weight: 400;
         }
         input[type="text"]:focus, select:focus {
-            border-color: #d99a5e; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(217, 154, 94, 0.12);
+            border-color: var(--accent-amber);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3.5px rgba(212, 139, 69, 0.15), 0 2px 6px rgba(212, 139, 69, 0.08);
         }
 
         .input-with-icon {
@@ -242,166 +402,396 @@
             align-items: center;
         }
         .input-with-icon input {
-            padding-right: 50px;
+            padding-right: 48px;
         }
         .mini-mic-btn {
             position: absolute;
-            right: 8px;
-            background: #fff;
-            border: 1px solid #eeede7;
-            width: 36px;
-            height: 36px;
+            right: 6px;
+            background: linear-gradient(180deg, #faf8f4 0%, #f0ede6 100%);
+            border: 1px solid var(--border-light);
+            width: 34px;
+            height: 34px;
             border-radius: 10px;
-            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #7a7a78;
+            color: var(--accent-copper);
+            padding: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 #fff;
         }
-        .mini-mic-btn:hover { background: #faf9f6; border-color: #e2e1da; }
+        .mini-mic-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+        .mini-mic-btn:hover {
+            background: #fdf8f2;
+            border-color: var(--accent-amber);
+            transform: scale(1.04);
+        }
         .mini-mic-btn.listening {
-            background: #c0604a;
-            border-color: #c0604a;
+            background: linear-gradient(135deg, #e05a47 0%, #c03d2b 100%);
+            border-color: #c03d2b;
             color: white;
-            animation: pulseMini 1.5s infinite;
+            animation: pulseMini 1.4s infinite;
         }
         @keyframes pulseMini {
-            0% { box-shadow: 0 0 0 0 rgba(192, 96, 74, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(192, 96, 74, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(192, 96, 74, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(217, 72, 56, 0.45); }
+            70% { box-shadow: 0 0 0 10px rgba(217, 72, 56, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 72, 56, 0); }
         }
 
         /* ==========================================
-           🎨 メイン録音エリア
+           🎨 メイン録音エリア（オーディオ・コア ＆ デジタルタイマー）
            ========================================== */
         .record-area {
-            flex-grow: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; margin: 32px 0 24px;
-        }
-        .record-btn {
-            width: 116px; height: 116px; border-radius: 50%; border: none;
-            background: linear-gradient(160deg, #d99a5e 0%, #c07f45 100%); color: white;
-            font-size: 44px; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(192, 127, 69, 0.30), 0 2px 6px rgba(192, 127, 69, 0.20),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.30);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; justify-content: center; align-items: center;
-        }
-        .record-btn:active { transform: scale(0.94); }
-        .record-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .record-btn.recording {
-            background: linear-gradient(160deg, #cf6a52 0%, #b04c38 100%);
-            box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0.5),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.25);
-            animation: pulse 1.8s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0.45), inset 0 1px 2px rgba(255,255,255,0.25); }
-            70% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 22px rgba(176, 76, 56, 0), inset 0 1px 2px rgba(255,255,255,0.25); }
-            100% { box-shadow: 0 8px 20px rgba(176, 76, 56, 0.30), 0 0 0 0 rgba(176, 76, 56, 0), inset 0 1px 2px rgba(255,255,255,0.25); }
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 18px 0 14px;
+            position: relative;
+            z-index: 5;
         }
 
-        .status-text {
-            margin-top: 20px; font-size: 14px; font-weight: 600;
-            color: #9a9a9a; text-align: center; min-height: 24px;
+        /* 🌟 デジタル・スタジオタイムカウンター */
+        .timer-display-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 18px;
         }
-
         .elapsed-time {
-            margin-top: 8px; font-size: 13px; color: #b8b7ae; text-align: center;
+            font-family: "SF Pro Display", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-variant-numeric: tabular-nums;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #c5c2b8;
+            text-align: center;
+            line-height: 1.1;
+            transition: color 0.35s ease, text-shadow 0.35s ease, transform 0.35s ease;
+            min-height: 36px;
+        }
+        body.recording-active .elapsed-time {
+            color: #f8f9fa;
+            text-shadow: 0 0 24px rgba(217, 72, 56, 0.40);
+            transform: scale(1.04);
+        }
+
+        /* 🌟 オーディオ・コア（多重リング＋メタリックベゼル＋メインボタン） */
+        .record-core-stage {
+            position: relative;
+            width: 158px;
+            height: 158px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 音声レベルに連動して拡縮するオーラリング（外側・内側） */
+        .voice-ring-outer,
+        .voice-ring-inner {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s ease, transform 0.08s linear;
+        }
+        .voice-ring-outer {
+            width: 154px;
+            height: 154px;
+            background: radial-gradient(circle, rgba(217, 72, 56, 0.18) 0%, rgba(212, 139, 69, 0.08) 55%, rgba(217, 72, 56, 0) 75%);
+            border: 1px solid rgba(217, 72, 56, 0.22);
+        }
+        .voice-ring-inner {
+            width: 134px;
+            height: 134px;
+            background: radial-gradient(circle, rgba(217, 72, 56, 0.28) 0%, rgba(217, 72, 56, 0) 70%);
+            border: 1.5px solid rgba(224, 90, 71, 0.40);
+        }
+        body.recording-active .voice-ring-outer,
+        body.recording-active .voice-ring-inner {
+            opacity: 1;
+        }
+
+        /* メタリック＆ガラスベゼル（外枠リング） */
+        .record-bezel {
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            padding: 8px;
+            box-sizing: border-box;
+            background: linear-gradient(145deg, #ffffff 0%, #eae6dc 100%);
+            box-shadow:
+                0 12px 30px rgba(45, 38, 28, 0.12),
+                0 2px 6px rgba(45, 38, 28, 0.06),
+                inset 0 2px 3px rgba(255, 255, 255, 0.95),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            transition: all 0.4s ease;
+        }
+        body.recording-active .record-bezel {
+            background: linear-gradient(145deg, #282c35 0%, #171a20 100%);
+            box-shadow:
+                0 14px 36px rgba(0, 0, 0, 0.55),
+                0 0 28px rgba(217, 72, 56, 0.18),
+                inset 0 1px 2px rgba(255, 255, 255, 0.12),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .record-btn {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(155deg, #e39e58 0%, #c87e3b 52%, #a96324 100%);
+            color: white;
+            cursor: pointer;
+            box-shadow:
+                0 6px 18px rgba(181, 108, 43, 0.38),
+                inset 0 2px 3px rgba(255, 255, 255, 0.42),
+                inset 0 -3px 6px rgba(90, 45, 10, 0.35);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+        }
+        /* ボタン上部のガラス光沢ハイライト */
+        .record-btn::before {
+            content: "";
+            position: absolute;
+            top: 4%;
+            left: 14%;
+            right: 14%;
+            height: 42%;
+            border-radius: 50% 50% 40% 40%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+        .record-btn svg {
+            width: 42px;
+            height: 42px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: transform 0.25s ease;
+        }
+        .record-btn:hover {
+            transform: scale(1.02);
+            box-shadow:
+                0 10px 24px rgba(181, 108, 43, 0.45),
+                inset 0 2px 4px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 6px rgba(90, 45, 10, 0.35);
+        }
+        .record-btn:active {
+            transform: scale(0.94);
+        }
+        .record-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(155deg, #e65c4a 0%, #c83b2b 55%, #9c2417 100%);
+            box-shadow:
+                0 8px 24px rgba(200, 59, 43, 0.45),
+                inset 0 2px 3px rgba(255, 255, 255, 0.35),
+                inset 0 -3px 6px rgba(70, 10, 5, 0.45);
+        }
+
+        /* 🌟 12バンド・リアルタイム音声スペクトラム波形バー */
+        .audio-visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 24px;
+            margin-top: 14px;
+            opacity: 0.35;
+            transition: opacity 0.35s ease;
+        }
+        body.recording-active .audio-visualizer {
+            opacity: 1;
+        }
+        .vis-bar {
+            width: 3.5px;
+            height: 5px;
+            border-radius: 999px;
+            background: var(--accent-amber);
+            transition: height 0.07s ease-out, background-color 0.3s ease;
+        }
+        body.recording-active .vis-bar {
+            background: linear-gradient(180deg, #ff8773 0%, #d94838 100%);
+            box-shadow: 0 0 6px rgba(217, 72, 56, 0.4);
+        }
+
+        /* 🌟 ステータスピルバッジ */
+        .status-text {
+            margin-top: 12px;
+            padding: 7px 16px;
+            border-radius: 999px;
+            background: rgba(247, 245, 240, 0.9);
+            border: 1px solid var(--border-light);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
         }
 
         .wake-lock-warning {
             display: none;
-            margin-top: 16px;
-            padding: 12px 16px;
-            background: #fff9db;
-            border: 1px solid #fab005;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(255, 249, 219, 0.92);
+            border: 1px solid rgba(250, 176, 5, 0.5);
             border-radius: 12px;
-            font-size: 12px;
+            font-size: 11.5px;
             color: #7c5c00;
             text-align: center;
-            line-height: 1.6;
+            line-height: 1.55;
         }
 
         .wake-lock-note {
             margin-top: 10px;
             font-size: 11px;
-            color: #adb5bd;
+            color: var(--text-muted);
             text-align: center;
-            line-height: 1.6;
-        }
-        body.recording-active .wake-lock-note {
-            color: #6a6f78;
+            line-height: 1.55;
         }
 
         /* ==========================================
-           🔋 録音中の省電力表示（ダークトーン）
-           Wake Lockで画面を点灯させ続ける分、表示自体の消費電力を
-           抑えるため、録音中は背景を暗いトーンに切り替える。
-           有機ELディスプレイでは黒に近い表示ほど消費電力が下がるため、
-           特にモバイル端末での長時間録音時に効果が期待できる。
+           🔋 録音中の省電力表示（プロスタジオ・ダークモード）
            ========================================== */
         body.recording-active {
-            background-color: #16181c;
-            transition: background-color 0.4s ease;
+            background: radial-gradient(circle at 50% 0%, #1c1f26 0%, #0e1014 70%, #090a0d 100%);
         }
         body.recording-active .app-shell {
-            background: linear-gradient(180deg, #1c1e22 0%, #16181c 100%);
+            background: linear-gradient(165deg, rgba(48, 53, 64, 0.55) 0%, rgba(20, 23, 28, 0.85) 100%);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.07);
         }
         body.recording-active .app-container {
-            background-color: #1c1e22;
-            color: #d0d3d8;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            background: rgba(18, 20, 25, 0.94);
+            color: #e4e6eb;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
         }
         body.recording-active .app-container::before {
-            background: radial-gradient(circle, rgba(224, 138, 63, 0.10) 0%, rgba(224, 138, 63, 0) 70%);
+            background: radial-gradient(circle, rgba(217, 72, 56, 0.14) 0%, rgba(212, 139, 69, 0.05) 45%, rgba(0, 0, 0, 0) 72%);
+        }
+        body.recording-active .app-container::after {
+            background: radial-gradient(circle, rgba(212, 139, 69, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
         }
         body.recording-active .header h2 {
-            color: #e8eaed;
+            background: linear-gradient(135deg, #ffffff 0%, #b8bec9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         body.recording-active .header-brand-name {
-            color: #6a6f78;
+            color: #6c727f;
         }
-        body.recording-active .btn-icon,
-        body.recording-active .btn-pill {
-            background: #2a2d33;
-            color: #d0d3d8;
-            border-color: #3a3d44;
+        body.recording-active .header-live-badge {
+            background: rgba(217, 72, 56, 0.18);
+            color: #ff7b6b;
+            border-color: rgba(217, 72, 56, 0.40);
+        }
+        body.recording-active .header-live-badge .badge-dot {
+            background: #ff5c47;
+            box-shadow: 0 0 8px #ff5c47;
+            animation: badgePulse 1.2s infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        body.recording-active .btn-icon {
+            background: linear-gradient(180deg, #252932 0%, #1c1f26 100%);
+            color: #c5c9d2;
+            border-color: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+        body.recording-active .header-menu {
+            background: rgba(28, 31, 38, 0.95);
+            border-color: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+        }
+        body.recording-active .header-menu-item {
+            color: #d8dce3;
+        }
+        body.recording-active .header-menu-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #f0ad68;
+        }
+        body.recording-active .header-menu-icon {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e69d56;
+        }
+        body.recording-active .controls-card {
+            background: rgba(28, 31, 38, 0.65);
+            border-color: rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
         body.recording-active .input-group label {
-            color: #8a8f98;
+            color: #8b919e;
         }
         body.recording-active input[type="text"],
         body.recording-active select {
-            background-color: #2a2d33;
-            border-color: #3a3d44;
-            color: #d0d3d8;
+            background-color: #16181e;
+            border-color: rgba(255, 255, 255, 0.09);
+            color: #e4e6eb;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        body.recording-active .mini-mic-btn {
+            background: #232730;
+            border-color: rgba(255, 255, 255, 0.10);
+            color: #e09b56;
+            box-shadow: none;
         }
         body.recording-active .status-text {
-            color: #8a8f98;
+            background: rgba(217, 72, 56, 0.12);
+            border-color: rgba(217, 72, 56, 0.30);
         }
         body.recording-active .progress-container {
-            background-color: #2a2d33;
+            background: rgba(28, 31, 38, 0.80);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        body.recording-active .progress-title {
+            color: #c5c9d2;
         }
         body.recording-active .wake-lock-warning {
-            background: #3a2f00;
+            background: rgba(58, 47, 0, 0.8);
             border-color: #7c5c00;
             color: #ffd43b;
         }
+        body.recording-active .wake-lock-note {
+            color: #686e7a;
+        }
         body.recording-active .app-footer {
-            color: #5a5d64;
-            border-top-color: #2a2d33;
+            color: #4f545e;
+            border-top-color: rgba(255, 255, 255, 0.06);
         }
 
         /* ==========================================
-           🌑 疑似スリープオーバーレイ
-           実際のOSスリープはWake Lockでキャンセルし続けつつ、
-           一定時間操作がなければ画面をほぼ黒くフェードさせることで、
-           見た目上は消灯したように見せ、体感的な省電力感を出す。
-           タップすると即座に解除される。
+           🌑 疑似スリープオーバーレイ（高級スタジオモニター風）
            ========================================== */
         .pseudo-sleep-overlay {
             position: fixed;
@@ -410,7 +800,7 @@
             opacity: 0;
             pointer-events: none;
             z-index: 9999;
-            transition: opacity 2.5s ease;
+            transition: opacity 2.0s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -421,128 +811,214 @@
             pointer-events: auto;
         }
         .pseudo-sleep-overlay .sleep-indicator {
-            color: #3a3d44;
-            font-size: 13px;
+            color: #4a4e58;
+            font-size: 12.5px;
             text-align: center;
-            line-height: 1.8;
+            line-height: 1.9;
             opacity: 0;
-            transition: opacity 2.5s ease 0.5s;
+            transition: opacity 2.0s ease 0.4s;
+            padding: 28px 36px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(14, 16, 20, 0.5);
         }
         .pseudo-sleep-overlay.active .sleep-indicator {
             opacity: 1;
+        }
+        .sleep-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #8c3a32;
+            text-transform: uppercase;
+            margin-bottom: 6px;
         }
         .pseudo-sleep-overlay .sleep-rec-dot {
             display: inline-block;
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #7a2020;
-            margin-right: 6px;
+            background-color: #9e2a20;
+            box-shadow: 0 0 10px rgba(180, 45, 35, 0.6);
             animation: sleepPulse 3s infinite;
         }
+        #sleepOverlayElapsed {
+            display: block;
+            font-family: "SF Pro Display", ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+            font-size: 36px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #5c616e;
+            margin: 4px 0 8px;
+        }
         @keyframes sleepPulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.9; }
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 0.95; }
         }
 
         /* ==========================================
-           🎨 進捗表示 ＆ パネル群
+           🎨 区間保存LEDドット ＆ パネル群
            ========================================== */
         .progress-container {
-            display: none; background-color: #faf9f6; padding: 22px;
-            border-radius: 16px; margin-top: 18px; border: 1px solid #f0efea;
+            display: none;
+            background: rgba(249, 248, 244, 0.85);
+            padding: 16px 18px;
+            border-radius: 16px;
+            margin-top: 12px;
+            border: 1px solid var(--border-light);
+            position: relative;
+            z-index: 5;
         }
         .progress-title {
-            font-size: 14px; font-weight: 700; color: #5a5a58;
-            margin-bottom: 16px; text-align: center;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-align: center;
         }
-        .dots-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .dots-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
         .dot {
-            width: 16px; height: 16px; border-radius: 50%;
-            background-color: #e2e1da; transition: all 0.4s ease;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #dfdcd2;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .dot.processing {
-            background-color: #d99a5e; box-shadow: 0 0 8px rgba(217, 154, 94, 0.5);
-            animation: bounce 1s infinite alternate;
+            background: linear-gradient(135deg, #e8a45c, #c87d32);
+            box-shadow: 0 0 10px rgba(212, 139, 69, 0.6);
+            animation: bounce 0.9s infinite alternate;
         }
-        .dot.complete { background-color: #8fae5c; transform: scale(1.1); }
-        .dot.error { background-color: #cf9a4a; }
-        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-4px); } }
+        .dot.complete {
+            background: linear-gradient(135deg, #98bf64, #6f963d);
+            box-shadow: 0 0 8px rgba(127, 166, 80, 0.45), inset 0 1px 1px rgba(255,255,255,0.4);
+            transform: scale(1.08);
+        }
+        .dot.error {
+            background: linear-gradient(135deg, #e07a47, #b85324);
+            box-shadow: 0 0 8px rgba(224, 122, 71, 0.45);
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-4px); }
+        }
 
         .recovery-panel {
-            display: none; margin-top: 18px; padding: 20px;
-            background: rgba(250, 249, 246, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid #f0efea; border-radius: 18px;
-        }
-        .recovery-panel h4 { margin: 0 0 10px 0; font-size: 15px; }
-        .recovery-panel.help h4 { color: #c07f45; }
-        .recovery-panel.settings h4 { color: #6a6f78; }
-        
-        .recovery-btn {
-            width: 100%; padding: 14px; margin-top: 10px;
-            background-color: #fff; border: 1px solid #eeede7;
-            border-radius: 12px; font-weight: 600; color: #5a5a58;
-            cursor: pointer; transition: all 0.2s;
-        }
-        .recovery-panel.help .recovery-btn:hover { border-color: #d99a5e; color: #c07f45; }
-        .recovery-panel.settings .recovery-btn:hover { border-color: #b5b4ac; color: #6a6f78; background: #faf9f6; }
-        
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ==========================================
-           🎨 診断情報パネル（finishReason等の確認用）
-           文字起こし・議事録生成の処理結果や通信エラーの詳細を表示し、
-           そのままAIへの不具合報告としてコピペできるようにするパネル。
-           ========================================== */
-        .recovery-panel.diagnostics {
             display: none;
+            margin-top: 14px;
+            padding: 18px;
+            background: rgba(252, 251, 248, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06), inset 0 1px 0 #fff;
+            position: relative;
+            z-index: 10;
         }
-        .recovery-panel.diagnostics h4 {
-            color: #9a9a9a;
+        body.recording-active .recovery-panel {
+            background: rgba(28, 31, 38, 0.92);
+            border-color: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
         }
+        .recovery-panel h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .recovery-panel h4 svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+        }
+        .recovery-panel.help h4 { color: var(--accent-copper); }
+        .recovery-panel.settings h4 { color: var(--text-secondary); }
+        .recovery-panel.diagnostics h4 { color: var(--text-secondary); }
+
+        .recovery-btn {
+            width: 100%;
+            padding: 13px 16px;
+            margin-top: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #f5f3ee 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03), inset 0 1px 0 #fff;
+        }
+        .recovery-btn:hover {
+            border-color: var(--accent-amber);
+            color: var(--accent-copper);
+            background: #fdf9f4;
+            transform: translateY(-1px);
+        }
+        body.recording-active .recovery-btn {
+            background: #252932;
+            border-color: rgba(255, 255, 255, 0.10);
+            color: #e4e6eb;
+            box-shadow: none;
+        }
+
+        .fade-in { animation: fadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 診断情報テキストエリア */
         .diagnostics-textarea {
             width: 100%;
             box-sizing: border-box;
-            height: 160px;
+            height: 150px;
             font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
             font-size: 11px;
             line-height: 1.5;
             padding: 12px;
-            border: 1px solid #eeede7;
+            border: 1px solid var(--border-light);
             border-radius: 12px;
-            background-color: #faf9f6;
-            color: #5a5a58;
+            background-color: #f6f5f0;
+            color: var(--text-secondary);
             resize: vertical;
             white-space: pre;
         }
         body.recording-active .diagnostics-textarea {
-            background-color: #2a2d33;
-            border-color: #3a3d44;
-            color: #d0d3d8;
-        }
-        .recovery-panel.diagnostics .recovery-btn:hover {
-            border-color: #b5b4ac; color: #6a6f78; background: #faf9f6;
-        }
-        /* 🌟 診断アイコンボタンが押されている（パネル表示中）ことが
-           視覚的に分かるよう、他のアイコンボタンと差別化する状態色。 */
-        .btn-icon.active-panel {
-            background: #fdf2e9;
-            color: #c07f45;
+            background-color: #14161b;
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #c5c9d2;
         }
 
         /* ==========================================
            🎨 フッター
-           © 2026 Effortless Care DX の著作権表記。
            ========================================== */
         .app-footer {
             text-align: center;
-            font-size: 10px;
-            color: #c3c2bd;
-            letter-spacing: 0.2px;
-            padding: 16px 0 4px;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: #b5b2a8;
+            letter-spacing: 0.4px;
+            padding: 14px 0 2px;
             margin-top: auto;
-            border-top: 1px solid #f2f1ec;
+            border-top: 1px solid rgba(232, 229, 220, 0.7);
+            position: relative;
+            z-index: 5;
         }
     </style>
 </head>
@@ -551,72 +1027,156 @@
 
 <div class="app-shell">
 <div class="app-container">
+    <!-- ヘッダー -->
     <div class="header">
         <div>
             <div class="header-brand-row">
                 <span class="header-logo-mark">
-                    <img src="img/logo_icon.png" alt="Effortless Care DX">
+                    <img src="img/logo_icon.png" alt="Effortless Care DX" onerror="this.style.display='none'">
                 </span>
                 <span class="header-brand-name">Effortless Care DX</span>
             </div>
-            <h2>らくらく議事録</h2>
+            <div class="header-title-row">
+                <h2>らくらく議事録</h2>
+                <span class="header-live-badge" id="headerLiveBadge">
+                    <span class="badge-dot"></span>
+                    <span id="headerLiveBadgeText">READY</span>
+                </span>
+            </div>
         </div>
-        <!-- 🌟 ヘッダーは常に「タイトル＋メニューボタン1個」の2要素だけにし、
-             画面幅に関わらずタイトルが確実に1行に収まるようにしている。
-             手動再開・診断情報・設定は「⋮」メニューに集約。 -->
+
         <div class="header-actions">
-            <button class="btn-icon" title="メニュー" id="headerMenuBtn" aria-haspopup="true" aria-expanded="false">⋮</button>
+            <button class="btn-icon" title="メニュー" id="headerMenuBtn" aria-haspopup="true" aria-expanded="false">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="5" r="1.5"></circle>
+                    <circle cx="12" cy="12" r="1.5"></circle>
+                    <circle cx="12" cy="19" r="1.5"></circle>
+                </svg>
+            </button>
             <div class="header-menu" id="headerMenu">
                 <button class="header-menu-item" id="showRecoveryBtn">
-                    <span class="header-menu-icon">🛠</span> 手動再開
+                    <span class="header-menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                        </svg>
+                    </span>
+                    手動再開
                 </button>
                 <button class="header-menu-item" id="showDiagnosticsBtn">
-                    <span class="header-menu-icon">🩺</span> 診断情報
+                    <span class="header-menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </span>
+                    診断情報
                 </button>
                 <button class="header-menu-item" id="settingsBtn">
-                    <span class="header-menu-icon">⚙️</span> 設定
+                    <span class="header-menu-icon">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </span>
+                    設定
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="input-group">
-        <label>会議名・内容 (ファイル名)</label>
-        <div class="input-with-icon">
-            <input type="text" id="meetingNameInput" placeholder="例：〇〇様 担当者会議">
-            <button class="mini-mic-btn" id="meetingNameMicBtn" title="音声で入力">🎙️</button>
+    <!-- フォームコントロール群 -->
+    <div class="controls-card">
+        <div class="input-group">
+            <label>
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                会議名・内容 (ファイル名)
+            </label>
+            <div class="input-with-icon">
+                <input type="text" id="meetingNameInput" placeholder="例：〇〇様 担当者会議">
+                <button class="mini-mic-btn" id="meetingNameMicBtn" title="音声で入力">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                </svg>
+                AI処理モード
+            </label>
+            <select id="modeSelect">
+                <option value="1">① 録音保存のみ</option>
+                <option value="2">② 録音 ＋ AI文字起こし</option>
+                <option value="3" selected>③ 録音 ＋ 文字起こし ＋ 議事録生成</option>
+            </select>
+        </div>
+
+        <div class="input-group fade-in" id="templateGroup">
+            <label>
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                議事録テンプレート
+            </label>
+            <select id="templateSelect">
+                <option value="汎用議事録">汎用議事録</option>
+                <option value="サービス担当者会議録">サービス担当者会議録</option>
+                <option value="苦情・要望等受付">苦情・要望等受付</option>
+            </select>
         </div>
     </div>
 
-    <div class="input-group">
-        <label>AI処理モード</label>
-        <select id="modeSelect">
-            <option value="1">① 録音保存のみ</option>
-            <option value="2">② 録音 ＋ AI文字起こし</option>
-            <option value="3" selected>③ 録音 ＋ 文字起こし ＋ 議事録生成</option>
-        </select>
-    </div>
-
-    <div class="input-group fade-in" id="templateGroup">
-        <label>議事録テンプレート</label>
-        <select id="templateSelect">
-            <option value="汎用議事録">汎用議事録</option>
-            <option value="サービス担当者会議録">サービス担当者会議録</option>
-            <option value="苦情・要望等受付">苦情・要望等受付</option>
-        </select>
-    </div>
-
+    <!-- メイン録音エリア（オーディオ・コア） -->
     <div class="record-area">
-        <button class="record-btn" id="mainRecordBtn">🎤</button>
+        <div class="timer-display-wrap">
+            <div class="elapsed-time" id="elapsedTime">00:00:00</div>
+        </div>
+
+        <div class="record-core-stage">
+            <div class="voice-ring-outer" id="voiceRingOuter"></div>
+            <div class="voice-ring-inner" id="voiceRingInner"></div>
+            <div class="record-bezel">
+                <button class="record-btn" id="mainRecordBtn" aria-label="録音開始・停止">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="22"></line>
+                        <line x1="8" y1="22" x2="16" y2="22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 12バンド・リアルタイム音声スペクトラム -->
+        <div class="audio-visualizer" id="audioVisualizer" aria-hidden="true">
+            <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
+            <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
+            <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
+            <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
+        </div>
+
         <div class="status-text" id="statusText">タップして録音を開始</div>
-        <div class="elapsed-time" id="elapsedTime"></div>
+
         <div class="wake-lock-warning" id="wakeLockWarning">
-            ⚠️ 画面がスリープすると録音が中断される可能性があります。<br>
-            録音中は端末をスリープさせないようにしてください。
+            ⚠️ 画面ロックが長時間続くとOSにより録音が中断される場合があります。<br>
+            机に置く際は画面を表示したまま（省電力モード）にしてください。
         </div>
         <div class="wake-lock-note">
-            ※ 録音中は、他のアプリへの切り替えや画面ロックを避け、<br>
-            本アプリの画面を表示したままにしてください。
+            ※ 録音中にカレンダー等の他アプリを一時的に確認しても録音は継続されます。<br>
+            （長時間の放置時は、画面ロックせずこのまま置いておくことを推奨します）
         </div>
     </div>
 
@@ -626,31 +1186,45 @@
     </div>
 
     <!-- お助けモード（自動再開）パネル -->
-    <!-- 🌟 保存済みsessionIdを使い、サーバー側の実データを根拠に
-         自動で状態判定・再開する方式。再開は「音声の確定保存」のみを行い、
-         文字起こし・議事録生成はバックグラウンド処理に任せる。 -->
     <div class="recovery-panel help" id="recoveryPanel">
-        <h4>🛠 お助けモード（自動再開）</h4>
+        <h4>
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+            </svg>
+            お助けモード（自動再開）
+        </h4>
         <div id="recoveryStatusText" style="font-size: 13px; color: #868e96; line-height: 1.6; margin-bottom: 12px;">
             前回の録音状況を確認しています...
         </div>
         <button class="recovery-btn" id="recoveryActionBtn" style="display:none;"></button>
     </div>
 
-    <!-- 診断情報パネル（finishReason・トークン数・通信エラーなどの確認用） -->
+    <!-- 診断情報パネル -->
     <div class="recovery-panel diagnostics" id="diagnosticsPanel">
-        <h4>🩺 診断情報（AIへの共有用）</h4>
+        <h4>
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            診断情報（AIへの共有用）
+        </h4>
         <div style="font-size: 12px; color: #868e96; margin-bottom: 10px; line-height: 1.6;">
             通信エラーや処理結果（finishReason・トークン数等）の記録です。<br>
             「途中で止まった」等の不具合報告の際は、このテキストをそのままコピーして共有してください。
         </div>
         <textarea class="diagnostics-textarea" id="diagnosticsText" readonly placeholder="通信エラーや処理結果が発生すると、ここに診断情報が表示されます。"></textarea>
-        <button class="recovery-btn" id="copyDiagnosticsBtn">📋 診断情報をコピー</button>
+        <button class="recovery-btn" id="copyDiagnosticsBtn">診断情報をクリップボードにコピー</button>
     </div>
 
     <!-- システム設定パネル -->
     <div class="recovery-panel settings" id="settingsPanel">
-        <h4>⚙️ システム設定</h4>
+        <h4>
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            システム設定
+        </h4>
         <div class="input-group" style="margin-bottom: 0;">
             <label style="font-size: 12px;">GAS ウェブアプリURL</label>
             <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
@@ -666,16 +1240,16 @@
 <!-- 🌑 疑似スリープオーバーレイ：録音中、一定時間操作がないと表示される -->
 <div class="pseudo-sleep-overlay" id="pseudoSleepOverlay">
     <div class="sleep-indicator">
-        <span class="sleep-rec-dot"></span>録音中<br>
-        <span id="sleepOverlayElapsed"></span><br>
-        画面をタップすると表示が戻ります
+        <div class="sleep-status-badge">
+            <span class="sleep-rec-dot"></span>STUDIO RECORDING
+        </div>
+        <span id="sleepOverlayElapsed">00:00:00</span>
+        省電力モードで録音を継続しています<br>
+        <span style="font-size: 11px; color: #363942;">画面をタップすると表示が戻ります</span>
     </div>
 </div>
 
-<!-- キャッシュ強制回避用のバージョン記述（v=6.0：バックグラウンド処理方式への整理版） -->
-<!-- 🌟 recorder-controller.js の読み込み成否はコンソールログにのみ残す。
-     読み込みに失敗した場合はコンソールで確認できる（通常操作の
-     妨げにならないよう、アラートでのポップアップは行わない）。 -->
+<!-- キャッシュ強制回避用のバージョン記述 -->
 <script src="js/recorder-controller.js?v=6.0"
     onload="console.log('✅ recorder-controller.js 読み込み成功');"
     onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
@@ -683,15 +1257,26 @@
 
 <script>
     // ==========================================
+    // 🎨 カスタムSVGアイコン定義（脱・絵文字）
+    // ==========================================
+    const SVG_ICONS = {
+        mic: `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+              </svg>`,
+        stop: `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="6" y="6" width="12" height="12" rx="2.5" ry="2.5" fill="currentColor" stroke="none"></rect>
+               </svg>`
+    };
+
+    // ==========================================
     // 🔧 設定と状態管理
     // ==========================================
     const APP_CONFIG = {
-        // 🌟 録音を区切る間隔。10分（600000）にすると1ファイルあたりが長くなり、
-        //   5分（300000）にすると、アプリが予期せず落ちた場合に失われる音声が
-        //   最大5分に抑えられる。ファイル数が増えるほど、ファイル間での
-        //   話者ラベルの振り直しが増える点とのバランスで選ぶ。
-        SEGMENT_INTERVAL_MS: 300000,
-        PSEUDO_SLEEP_DELAY_MS: 15000 // 録音中、操作がないままこの時間が経つと疑似スリープ表示になる
+        SEGMENT_INTERVAL_MS: 300000, // 5分ごとに区切って保存
+        PSEUDO_SLEEP_DELAY_MS: 15000 // 録音中、15秒操作がなければ疑似スリープ表示
     };
 
     const AppState = {
@@ -710,16 +1295,19 @@
         audioSendQueue: Promise.resolve(),
         segmentTimerId: null,
         isSegmentCycleActive: false,
-        // 🌟 Web Audio API前処理：
-        //   マイク入力（rawMicStream）に対してハイパスフィルタ＋
-        //   ダイナミクス圧縮をかけた後の出力ストリームを
-        //   processedStream として MediaRecorder に渡す。
-        //   停止時に audioContext を確実に close() するため、
-        //   関連ノード・ストリームをすべて保持しておく。
+        // 🌟 バックグラウンド（カレンダー等の他アプリ確認中）に5分タイマーが来た場合、
+        //   裏で recorder.stop() を呼ぶとOSにマイク権限を切られるため、
+        //   画面に戻った瞬間（visibilityState === 'visible'）まで区切りを保留するフラグ
+        segmentRotationPending: false,
+        // 🌟 他アプリ切替中などに通信失敗したチャンクを保持し、画面復帰時・終了時に自動再送するキュー
+        pendingRetrySegments: [],
+        // 🌟 Web Audio API（リアルタイム波形解析＆音声モニタリング用）
         audioContext: null,
-        rawMicStream: null,      // getUserMediaの生ストリーム（トラック停止用に保持）
-        processedStream: null,   // フィルタ後の出力ストリーム（MediaRecorderに渡す方）
-        audioProcessingNodes: null // { source, highpass, compressor, destination }
+        rawMicStream: null,
+        processedStream: null,
+        audioProcessingNodes: null,
+        analyserNode: null,
+        visualizerRafId: null
     };
 
     const UI = {
@@ -750,7 +1338,11 @@
         diagnosticsText: document.getElementById('diagnosticsText'),
         copyDiagnosticsBtn: document.getElementById('copyDiagnosticsBtn'),
         headerMenuBtn: document.getElementById('headerMenuBtn'),
-        headerMenu: document.getElementById('headerMenu')
+        headerMenu: document.getElementById('headerMenu'),
+        headerLiveBadgeText: document.getElementById('headerLiveBadgeText'),
+        voiceRingOuter: document.getElementById('voiceRingOuter'),
+        voiceRingInner: document.getElementById('voiceRingInner'),
+        audioVisualizer: document.getElementById('audioVisualizer')
     };
 
     // ==========================================
@@ -802,14 +1394,7 @@
             }
         });
 
-        // ==========================================
-        // 🌟 パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
-        //
-        // togglePanel() に集約し、ヘッダーのボタン側にも
-        // 「今開いているパネルはどれか」が一目で分かるよう
-        // active-panel クラスを付け外しする。
-        // メニュー項目をタップしたら、メニューは閉じてパネルだけが開く。
-        // ==========================================
+        // パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
         const ALL_PANELS = [
             { panel: UI.recoveryPanel, btn: UI.showRecoveryBtn },
             { panel: UI.settingsPanel, btn: UI.settingsBtn },
@@ -840,8 +1425,6 @@
             }
         }
 
-        // ヘッダーの「⋮」その他メニューの開閉。
-        // メニューを開くタイミングで、他の3パネルは念のため閉じておく。
         UI.headerMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = UI.headerMenu.classList.contains('open');
@@ -861,15 +1444,12 @@
             UI.headerMenuBtn.setAttribute('aria-expanded', 'true');
         });
 
-        // メニュー外をタップ・クリックしたら自動的に閉じる。
         document.addEventListener('click', (e) => {
             if (UI.headerMenu.classList.contains('open') && !UI.headerMenu.contains(e.target)) {
                 closeHeaderMenu();
             }
         });
 
-        // お助けモードを開いたタイミングで、保存済みsessionIdを使った
-        // 自動状態確認（checkRecoveryStatus）を実行する。
         UI.showRecoveryBtn.addEventListener('click', () => {
             togglePanel(UI.recoveryPanel, UI.showRecoveryBtn, checkRecoveryStatus);
         });
@@ -893,10 +1473,6 @@
             }
         });
 
-        // 診断パネルの開閉
-        //   recorder-controller.js の DiagnosticsReporter が #diagnosticsPanel /
-        //   #diagnosticsText を直接操作して自動表示するが、
-        //   ユーザーが手動でいつでも開けるよう、このボタンからも開閉できる。
         if (UI.showDiagnosticsBtn) {
             UI.showDiagnosticsBtn.addEventListener('click', () => {
                 togglePanel(UI.diagnosticsPanel, UI.showDiagnosticsBtn, () => {
@@ -907,7 +1483,6 @@
             });
         }
 
-        // 診断情報コピー・ボタン
         if (UI.copyDiagnosticsBtn) {
             UI.copyDiagnosticsBtn.addEventListener('click', async () => {
                 const text = window.lastDiagnosticsText || UI.diagnosticsText.value;
@@ -917,15 +1492,14 @@
                 }
                 try {
                     await navigator.clipboard.writeText(text);
-                    UI.copyDiagnosticsBtn.textContent = "✅ コピーしました！";
+                    UI.copyDiagnosticsBtn.textContent = "コピーしました！";
                 } catch (err) {
-                    // クリップボードAPIが使えない環境向けのフォールバック
                     UI.diagnosticsText.select();
                     document.execCommand('copy');
-                    UI.copyDiagnosticsBtn.textContent = "✅ コピーしました！";
+                    UI.copyDiagnosticsBtn.textContent = "コピーしました！";
                 }
                 setTimeout(() => {
-                    UI.copyDiagnosticsBtn.textContent = "📋 診断情報をコピー";
+                    UI.copyDiagnosticsBtn.textContent = "診断情報をクリップボードにコピー";
                 }, 2000);
             });
         }
@@ -935,12 +1509,6 @@
 
     // ==========================================
     // 🛠 お助けモード：自動再開ロジック
-    //
-    // 🛠【2026-10-19変更】バックグラウンド処理方式に統一。
-    //   再開は「音声の確定保存（finalizeAudio）」のみを行う。
-    //   これによりGAS側で録音完了フラグが立ち、文字起こし・議事録生成は
-    //   時間主導型トリガー（processQueueTrigger）が自動的に処理する。
-    //   画面側では文字起こしを実行しない。
     // ==========================================
     async function checkRecoveryStatus() {
         UI.recoveryActionBtn.style.display = "none";
@@ -954,11 +1522,11 @@
 
         if (!window.appController.gasUrl) {
             UI.recoveryStatusText.innerHTML =
-                "⚠️ GASのURLが設定されていないため、状態を確認できません。先に⚙️設定を行ってください。";
+                "⚠️ GASのURLが設定されていないため、状態を確認できません。先に設定を行ってください。";
             return;
         }
 
-        UI.recoveryStatusText.innerHTML = "🔍 前回の録音の状態をサーバーに問い合わせています...";
+        UI.recoveryStatusText.innerHTML = "前回の録音の状態をサーバーに問い合わせています...";
 
         try {
             const statusResult = await window.appController.checkSessionStatus();
@@ -979,7 +1547,7 @@
             UI.recoveryStatusText.innerHTML =
                 `✅ <b>音声データは専用フォルダに保存済みです。</b>` +
                 `（フォルダ名: ${statusResult.audioFileName}、ファイル数: ${statusResult.fileCount}件）<br>` +
-                `🔊 音声データ自体は失われていません。<br>` +
+                `音声データ自体は失われていません。<br>` +
                 `録音を確定し、文字起こし・議事録の生成をバックグラウンドで再開します。`;
             UI.recoveryActionBtn.textContent = "録音を確定して、バックグラウンド処理を開始する";
             UI.recoveryActionBtn.style.display = "block";
@@ -996,7 +1564,7 @@
 
     async function runRecoveryTranscriptPending(audioFolderId, meetingName, templateType) {
         UI.recoveryActionBtn.disabled = true;
-        UI.recoveryStatusText.innerHTML = "🔊 音声データを確定し、バックグラウンド処理に引き継いでいます...";
+        UI.recoveryStatusText.innerHTML = "音声データを確定し、バックグラウンド処理に引き継いでいます...";
 
         try {
             const result = await window.appController.finalizeAudioAndGetResult(meetingName);
@@ -1011,7 +1579,7 @@
             window.appController.clearState();
 
             UI.recoveryStatusText.innerHTML =
-                "🎉 音声データの確認が完了しました。<br>" +
+                "音声データの確認が完了しました。<br>" +
                 "文字起こし・議事録の生成は、バックグラウンドで自動的に処理されます。" +
                 "数分後に、Googleドライブの「レコーダー/議事録等」フォルダをご確認ください。";
             UI.recoveryActionBtn.style.display = "none";
@@ -1025,7 +1593,7 @@
     }
 
     // ==========================================
-    // 🔆 画面スリープ防止（Wake Lock API）
+    // 🔆 画面スリープ防止（Wake Lock API）＆ 他アプリ復帰処理
     // ==========================================
     async function requestWakeLock() {
         if (!AppState.wakeLockSupported) {
@@ -1040,10 +1608,8 @@
             hideWakeLockWarning();
 
             AppState.wakeLock.addEventListener('release', () => {
-                console.warn("⚠️ Wake Lockが解除されました（システムにより自動解除された可能性があります）。");
-                if (AppState.isRecording || AppState.isStopping) {
-                    showWakeLockWarning();
-                }
+                console.warn("⚠️ Wake Lockが解除されました（他アプリ切り替え等の可能性があります）。");
+                AppState.wakeLock = null;
             });
         } catch (err) {
             console.warn("⚠️ Wake Lockの取得に失敗しました:", err);
@@ -1060,10 +1626,36 @@
         hideWakeLockWarning();
     }
 
+    // 🌟【iPhone無音対策① ＋ カレンダー等の他アプリからの復帰処理】
     document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible' && (AppState.isRecording || AppState.isStopping) && !AppState.wakeLock) {
-            console.log("🔆 画面が再アクティブ化されました。Wake Lockの再取得を試みます。");
-            await requestWakeLock();
+        if (document.visibilityState === 'visible' && (AppState.isRecording || AppState.isStopping)) {
+            // 1) AudioContext が一時停止（suspended / interrupted）していたら再開
+            if (AppState.audioContext && AppState.audioContext.state !== 'running') {
+                try {
+                    await AppState.audioContext.resume();
+                    console.log("🎚️ 画面復帰に伴い AudioContext を再開しました:", AppState.audioContext.state);
+                } catch (e) {
+                    console.warn("⚠️ AudioContext resume失敗:", e);
+                }
+            }
+
+            // 2) Wake Lock の再取得
+            if (!AppState.wakeLock) {
+                console.log("🔆 画面が再アクティブ化されました。Wake Lockの再取得を試みます。");
+                await requestWakeLock();
+            }
+
+            // 3) カレンダー等の他アプリを見ている間に5分経過して保留されていた区間分割を安全に実行
+            if (AppState.isRecording && AppState.segmentRotationPending) {
+                console.log("🔄 バックグラウンド中に保留していたセグメント区切りを画面復帰後に実行します。");
+                AppState.segmentRotationPending = false;
+                if (AppState.recorder && AppState.recorder.state === "recording") {
+                    AppState.recorder.stop();
+                }
+            }
+
+            // 4) バックグラウンド中に通信失敗していたセグメントがあれば自動再送
+            retryPendingSegments();
         }
     });
 
@@ -1125,18 +1717,137 @@
         UI.sleepOverlayElapsed.textContent = `${h}:${m}:${s}`;
     }
 
+    // 🌟【iPhone無音対策②】ユーザージェスチャー（タップ等）のタイミングで
+    //   AudioContext が停止していれば確実に resume() する
     ['click', 'touchstart', 'keydown'].forEach(eventName => {
         document.addEventListener(eventName, () => {
             if (AppState.isRecording) {
                 resetPseudoSleepTimer();
+                if (AppState.audioContext && AppState.audioContext.state !== 'running') {
+                    AppState.audioContext.resume().catch(() => {});
+                }
             }
         }, { passive: true });
     });
 
+    // ==========================================
+    // 🎚️ リアルタイム音声スペクトラム＆オーディオ・コア演出
+    //
+    // 🛠 重要設計（無音化＆他アプリ切り替え対策）：
+    //   MediaRecorder には OS レベルのノイズ抑制・オートゲインが効いた
+    //   「生のマイクストリーム（rawMicStream）」を直接渡す。
+    //   これにより、iPhone Safari で別アプリ（カレンダー等）に切り替えて
+    //   AudioContext が一時停止されても、録音データ自体は絶対に無音にならない。
+    //   Web Audio API（ハイパス＋コンプレッサー＋AnalyserNode）は
+    //   リアルタイムの音声レベル可視化（サイドチェーン）として並列稼働させる。
+    // ==========================================
+    function buildAudioProcessingChain(rawStream) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            return null;
+        }
+
+        const audioContext = new AudioContextClass();
+        const source = audioContext.createMediaStreamSource(rawStream);
+
+        const highpass = audioContext.createBiquadFilter();
+        highpass.type = "highpass";
+        highpass.frequency.value = 100;
+        highpass.Q.value = 0.7;
+
+        const compressor = audioContext.createDynamicsCompressor();
+        compressor.threshold.value = -28;
+        compressor.knee.value = 24;
+        compressor.ratio.value = 4;
+        compressor.attack.value = 0.01;
+        compressor.release.value = 0.25;
+
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.78;
+
+        source.connect(highpass);
+        highpass.connect(compressor);
+        compressor.connect(analyser);
+
+        return {
+            audioContext: audioContext,
+            analyser: analyser,
+            nodes: { source, highpass, compressor, analyser }
+        };
+    }
+
+    function startAudioVisualizer() {
+        stopAudioVisualizer();
+        if (!AppState.analyserNode || !UI.audioVisualizer) return;
+
+        const analyser = AppState.analyserNode;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        const bars = UI.audioVisualizer.querySelectorAll('.vis-bar');
+
+        const renderFrame = () => {
+            if (!AppState.isRecording) return;
+            AppState.visualizerRafId = requestAnimationFrame(renderFrame);
+
+            // 疑似スリープ中や裏画面では描画計算をスキップして省電力化
+            if (AppState.isPseudoSleeping || document.visibilityState === 'hidden') {
+                return;
+            }
+
+            analyser.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bars.length; i++) {
+                const val = dataArray[i + 1] || 0;
+                sum += val;
+                const barHeight = Math.max(4, Math.min(24, 4 + (val / 255) * 20));
+                bars[i].style.height = `${barHeight.toFixed(1)}px`;
+            }
+
+            const avgLevel = sum / (bars.length * 255); // 0.0 〜 1.0
+            if (UI.voiceRingInner && UI.voiceRingOuter) {
+                const innerScale = 1 + avgLevel * 0.28;
+                const outerScale = 1 + avgLevel * 0.42;
+                UI.voiceRingInner.style.transform = `scale(${innerScale.toFixed(3)})`;
+                UI.voiceRingOuter.style.transform = `scale(${outerScale.toFixed(3)})`;
+            }
+        };
+
+        renderFrame();
+    }
+
+    function stopAudioVisualizer() {
+        if (AppState.visualizerRafId) {
+            cancelAnimationFrame(AppState.visualizerRafId);
+            AppState.visualizerRafId = null;
+        }
+        if (UI.audioVisualizer) {
+            const bars = UI.audioVisualizer.querySelectorAll('.vis-bar');
+            bars.forEach(bar => { bar.style.height = '5px'; });
+        }
+        if (UI.voiceRingInner) UI.voiceRingInner.style.transform = 'scale(1)';
+        if (UI.voiceRingOuter) UI.voiceRingOuter.style.transform = 'scale(1)';
+    }
+
+    function teardownAudioProcessingChain() {
+        stopAudioVisualizer();
+        if (AppState.audioContext) {
+            try {
+                AppState.audioContext.close();
+            } catch (e) {
+                console.warn("⚠️ AudioContextのclose()に失敗しました（無視して続行）:", e);
+            }
+        }
+        AppState.audioContext = null;
+        AppState.processedStream = null;
+        AppState.audioProcessingNodes = null;
+        AppState.analyserNode = null;
+    }
 
     async function handleRecordButtonClick() {
         if (!window.appController || !window.appController.gasUrl) {
-            alert("初回設定が必要です！\n右上の「⋮」メニューの「設定」から、GASウェブアプリのURLを登録してください。");
+            alert("初回設定が必要です！\n右上のメニューの「設定」から、GASウェブアプリのURLを登録してください。");
             if(UI.settingsPanel.style.display !== 'block') UI.settingsBtn.click();
             return;
         }
@@ -1153,100 +1864,9 @@
         }
     }
 
-    // ==========================================
-    // 🎚️ 音声前処理フィルタチェーン（Web Audio API）
-    //
-    // 🛠 目的：
-    //   getUserMedia の echoCancellation / noiseSuppression /
-    //   autoGainControl はブラウザ・端末依存のブラックボックス処理であり、
-    //   効果が不十分なケース（環境音が多い、複数人の音量差が大きい等）が
-    //   あるため、その手前でこちらでも制御できる軽量なフィルタを
-    //   追加でかけておく。
-    //
-    // 🛠 構成：
-    //   マイク入力 → ハイパスフィルタ（低周波ノイズ除去）
-    //             → ダイナミクスコンプレッサー（音量差の圧縮）
-    //             → MediaStreamDestination（MediaRecorderに渡す出力）
-    //
-    // 🛠 パラメータ選定の考え方：
-    //   ・ハイパスフィルタのカットオフは100Hz付近とした。人の声の
-    //     基本周波数（成人男性で概ね85〜180Hz、成人女性で165〜255Hz程度）
-    //     を削らない範囲で、空調音・振動音・机を叩く音等の低周波ノイズを
-    //     減衰させることを狙っている。
-    //   ・コンプレッサーは「声が小さい人と大きい人の差を縮めて、
-    //     全体として聞き取りやすくする」ことが目的のため、
-    //     ratioを強くしすぎず（4:1程度）、極端な音割れ的な圧縮は避けた。
-    //   ・段数はこの2つに絞り、モバイル端末への処理負荷を抑えている。
-    //
-    // 🛠 フォールバック：
-    //   AudioContext の生成やノード接続で例外が発生した場合、
-    //   前処理なしの生ストリームでそのまま録音を継続できるよう、
-    //   呼び出し元（startRecording）でtry/catchしてフォールバックする。
-    // ==========================================
-    function buildAudioProcessingChain(rawStream) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-            console.warn("⚠️ この端末・ブラウザはWeb Audio APIに対応していません。前処理なしで録音します。");
-            return null;
-        }
-
-        const audioContext = new AudioContextClass();
-
-        const source = audioContext.createMediaStreamSource(rawStream);
-
-        // ハイパスフィルタ：低周波ノイズ（空調音・振動音等）を減衰
-        const highpass = audioContext.createBiquadFilter();
-        highpass.type = "highpass";
-        highpass.frequency.value = 100; // 100Hz未満をカット
-        highpass.Q.value = 0.7;
-
-        // ダイナミクスコンプレッサー：発話者間の音量差を圧縮し、
-        // 小さい声も相対的に聞き取りやすくする
-        const compressor = audioContext.createDynamicsCompressor();
-        compressor.threshold.value = -28;  // このレベルを超えた音から圧縮開始
-        compressor.knee.value = 24;
-        compressor.ratio.value = 4;        // 4:1の圧縮率（強すぎない設定）
-        compressor.attack.value = 0.01;
-        compressor.release.value = 0.25;
-
-        // MediaRecorderに渡すための出力先
-        const destination = audioContext.createMediaStreamDestination();
-
-        source.connect(highpass);
-        highpass.connect(compressor);
-        compressor.connect(destination);
-
-        return {
-            audioContext: audioContext,
-            processedStream: destination.stream,
-            nodes: { source, highpass, compressor, destination }
-        };
-    }
-
-    // 🌟 録音停止時・エラー時に、Web Audio API関連のリソースを
-    //   確実に解放するための共通ヘルパー。close()を呼び忘れると
-    //   AudioContextがリークし続け、特に長時間の利用でモバイル端末の
-    //   リソースを圧迫する可能性があるため、停止経路をすべてここに集約する。
-    function teardownAudioProcessingChain() {
-        if (AppState.audioContext) {
-            try {
-                AppState.audioContext.close();
-            } catch (e) {
-                console.warn("⚠️ AudioContextのclose()に失敗しました（無視して続行）:", e);
-            }
-        }
-        AppState.audioContext = null;
-        AppState.processedStream = null;
-        AppState.audioProcessingNodes = null;
-    }
-
     async function startRecording() {
         try {
-            // 🌟 echoCancellation / noiseSuppression / autoGainControl を明示的に有効化する。
-            //   多くのAndroid端末ではハードウェア支援によるノイズ抑制・音量正規化が
-            //   働き、聞き取り精度の改善が期待できる。
-            //   これらの制約は「ベストエフォート」であり、対応していない端末・
-            //   ブラウザでは単純に無視される（エラーにはならない）。
+            // 🌟 OS標準のハードウェア音声処理（エコー除去・ノイズ抑制・オートゲイン）を有効化
             AppState.rawMicStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -1255,54 +1875,29 @@
                 }
             });
 
-            // 🌟 生のマイクストリームに対してハイパスフィルタ＋コンプレッサーを
-            //   かけた後のストリームを、実際にMediaRecorderへ渡すストリームとして採用する。
-            //   フィルタチェーンの構築に失敗した場合は、前処理なしの生ストリームに
-            //   フォールバックし、録音自体は継続できるようにする。
-            let chain = null;
+            // 🌟 MediaRecorder には AudioContext の影響を受けない rawMicStream を直接渡す。
+            //   これにより iPhone やバックグラウンド（カレンダーアプリ確認時）でも絶対に無音にならない。
+            AppState.globalStream = AppState.rawMicStream;
+
+            // 🌟 リアルタイム波形・レベルリング表示用の AudioContext チェーンを構築
             try {
-                chain = buildAudioProcessingChain(AppState.rawMicStream);
-            } catch (audioChainError) {
-                console.warn("⚠️ 音声前処理チェーンの構築に失敗しました。前処理なしで録音を継続します:", audioChainError);
-                chain = null;
-            }
-
-            if (chain) {
-                // 🌟 iPhone（iOS Safari）対策：
-                //   getUserMedia の await 後に生成した AudioContext は "suspended" 状態に
-                //   なることがあり、そのままでは出力ストリームが完全な無音になる。
-                //   録音開始前に必ず resume() を呼び出し、それでも running にならない場合は
-                //   無音化を防ぐため前処理なしの生ストリーム（rawMicStream）へフォールバックする。
-                if (chain.audioContext.state !== 'running') {
-                    try {
-                        await chain.audioContext.resume();
-                    } catch (resumeErr) {
-                        console.warn("⚠️ AudioContextの初回resume()に失敗しました:", resumeErr);
+                const chain = buildAudioProcessingChain(AppState.rawMicStream);
+                if (chain) {
+                    if (chain.audioContext.state !== 'running') {
+                        await chain.audioContext.resume().catch(() => {});
                     }
-                }
-
-                if (chain.audioContext.state === 'running') {
                     AppState.audioContext = chain.audioContext;
-                    AppState.processedStream = chain.processedStream;
+                    AppState.analyserNode = chain.analyser;
                     AppState.audioProcessingNodes = chain.nodes;
-                    AppState.globalStream = chain.processedStream;
 
-                    // 録音中にOS割り込み等で suspended / interrupted になった場合の自動復帰
                     chain.audioContext.onstatechange = () => {
                         if (AppState.isRecording && AppState.audioContext && AppState.audioContext.state !== 'running') {
-                            console.warn("⚠️ AudioContextの状態が変化しました (" + AppState.audioContext.state + ")。resume()を試みます。");
                             AppState.audioContext.resume().catch(() => {});
                         }
                     };
-                    console.log("🎚️ 音声前処理（ハイパスフィルタ＋コンプレッサー）を適用して録音します。");
-                } else {
-                    console.warn("⚠️ AudioContextがrunning状態にならないため（state=" + chain.audioContext.state + "）、無音防止のため生ストリームで録音します。");
-                    try { chain.audioContext.close(); } catch (e) {}
-                    AppState.globalStream = AppState.rawMicStream;
                 }
-            } else {
-                AppState.globalStream = AppState.rawMicStream;
-                console.log("ℹ️ 音声前処理なしで録音します（生のマイク入力をそのまま使用）。");
+            } catch (audioChainError) {
+                console.warn("⚠️ 波形表示チェーンの構築をスキップしました（録音には影響ありません）:", audioChainError);
             }
 
             if (window.appController) window.appController.startNewSession();
@@ -1310,6 +1905,8 @@
             AppState.isRecording = true;
             AppState.isStopping = false;
             AppState.isSegmentCycleActive = true;
+            AppState.segmentRotationPending = false;
+            AppState.pendingRetrySegments = [];
             AppState.chunkIndex = 0;
             AppState.audioSendQueue = Promise.resolve();
             AppState.recordingStartedAt = Date.now();
@@ -1317,18 +1914,18 @@
             UI.dotsGrid.innerHTML = '';
 
             UI.mainRecordBtn.classList.add('recording');
-            UI.mainRecordBtn.innerHTML = "⏹";
-            UI.statusText.innerHTML = "🔴 録音中... (タップして終了)";
-            UI.statusText.style.color = "#fa5252";
+            UI.mainRecordBtn.innerHTML = SVG_ICONS.stop;
+            UI.statusText.innerHTML = "録音中 — タップして終了";
+            UI.statusText.style.color = "#ff7b6b";
+            if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "LIVE REC";
             UI.progressContainer.style.display = "none";
 
             document.body.classList.add('recording-active');
 
             await requestWakeLock();
-
             resetPseudoSleepTimer();
-
             startElapsedTimeDisplay();
+            startAudioVisualizer();
 
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/webm')) {
@@ -1341,10 +1938,6 @@
             startNewSegment();
 
         } catch (err) {
-            // 🌟 getUserMedia自体の失敗だけでなく、フィルタチェーン構築後の
-            //   処理（startNewSegment等）で例外が起きた場合も、
-            //   ここまでに確保したマイクストリーム・AudioContextが
-            //   残ったままにならないよう、念のため解放しておく。
             if (AppState.rawMicStream) {
                 AppState.rawMicStream.getTracks().forEach(track => track.stop());
                 AppState.rawMicStream = null;
@@ -1375,8 +1968,9 @@
         let segmentBlobParts = [];
 
         recorder.ondataavailable = (e) => {
-            if (e.data.size === 0) return;
-            segmentBlobParts.push(e.data);
+            if (e.data && e.data.size > 0) {
+                segmentBlobParts.push(e.data);
+            }
         };
 
         recorder.onstop = () => {
@@ -1405,8 +1999,17 @@
 
         recorder.onerror = (event) => {
             console.error("❌ MediaRecorderでエラーが発生しました:", event.error);
-            UI.statusText.innerHTML = "⚠️ 録音が中断されました（スリープ等の可能性）。もう一度録音を開始してください。";
+            // 万が一エラーで止まった場合も、そこまでに溜まった音声パーツがあれば救出して送信する
+            if (segmentBlobParts.length > 0) {
+                const rescueIndex = AppState.chunkIndex++;
+                const rescueBlob = new Blob(segmentBlobParts, { type: mimeType });
+                segmentBlobParts = [];
+                handleSegmentComplete(rescueBlob, mimeType, rescueIndex);
+            }
+
+            UI.statusText.innerHTML = "⚠️ 録音が中断されました。もう一度録音を開始してください。";
             UI.statusText.style.color = "#fa5252";
+            if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "PAUSED";
             AppState.isRecording = false;
             AppState.isSegmentCycleActive = false;
             if (AppState.segmentTimerId) {
@@ -1417,10 +2020,6 @@
             stopPseudoSleepCycle();
             releaseWakeLock();
 
-            // 🌟 予期しない中断時も、マイクストリーム（生・処理後の両方）と
-            //   AudioContextを確実に解放する。これを怠ると、録音が
-            //   異常終了した際に端末のマイクが「使用中」のまま残り、
-            //   次回の録音開始やマイクの権限周りで不具合が起きうる。
             if (AppState.globalStream) {
                 AppState.globalStream.getTracks().forEach(track => track.stop());
                 AppState.globalStream = null;
@@ -1433,41 +2032,46 @@
 
             document.body.classList.remove('recording-active');
             UI.mainRecordBtn.classList.remove('recording');
-            UI.mainRecordBtn.innerHTML = "🎤";
+            UI.mainRecordBtn.innerHTML = SVG_ICONS.mic;
             UI.mainRecordBtn.disabled = false;
             alert(
-                "録音が予期せず中断されました。画面スリープや他アプリへの切り替えが原因の可能性があります。\n" +
-                "これまでに保存できた部分は、Googleドライブに残っています。\n" +
-                "「⋮」メニューの「手動再開」から、保存済みの録音の文字起こしを開始できます。\n" +
-                "（そのままにしておいても、最後の保存から約20分後に、自動的に処理が始まります）\n\n" +
+                "録音が予期せず中断されました（電話の着信やOSのスリープ等が原因の可能性があります）。\n" +
+                "これまでに録音された部分はGoogleドライブへ保存処理を行っています。\n" +
+                "右上のメニューの「手動再開」から、保存済みの録音の文字起こしを開始できます。\n" +
+                "（そのままにしておいても、最後の保存から約20分後に自動的に処理が始まります）\n\n" +
                 "続きを録音する場合は、「録音開始」を押して新しく録音を始めてください。"
             );
         };
 
-        recorder.start();
+        // 🌟 1秒（1000ms）ごとにデータをメモリ配列へ退避させることで、
+        //   万が一の強制中断時にも直前の秒までの音声を確実に残せるようにする
+        recorder.start(1000);
 
         AppState.segmentTimerId = setTimeout(() => {
-            if (AppState.recorder && AppState.recorder.state === "recording") {
-                AppState.recorder.stop();
+            if (!AppState.recorder || AppState.recorder.state !== "recording") return;
+
+            // 🌟 カレンダー等の他アプリを表示中（hidden）の場合は、
+            //   裏で stop() するとOSにマイクセッションを終了されてしまうため、
+            //   その場では止めずに録音を継続し、画面に戻った瞬間に区切る
+            if (document.visibilityState === 'hidden') {
+                console.log("⏳ 現在バックグラウンド（他アプリ表示中）のため、セグメント区切りを画面復帰まで保留して録音を継続します。");
+                AppState.segmentRotationPending = true;
+                return;
             }
+
+            AppState.recorder.stop();
         }, APP_CONFIG.SEGMENT_INTERVAL_MS);
     }
 
-    // 🌟【2026-10-19変更】
-    //   バックグラウンド処理（processQueueTrigger）は、Driveに保存された
-    //   音声ファイルを自分でGeminiへアップロードして処理するため、
-    //   録音中のGeminiへのアップロードは行わない（通信量・GAS負荷の削減、
-    //   Gemini側に音声を残さないため）。Drive保存のみ行い、
-    //   ドットの色もDrive保存の成否で決める。
     function handleSegmentComplete(segmentBlob, mimeType, segmentIndex) {
         const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
-        // 🌟 録音中に選択されているテンプレート種別を、チャンク保存のたびにGAS側へ渡す。
-        //   GAS側ではセッションフォルダの説明文に保存され、バックグラウンド処理が
-        //   議事録生成時にこれを使用する（最初のチャンクで作られたフォルダの値が使われる）。
         const templateType = UI.templateSelect.value || "汎用議事録";
 
+        UI.progressContainer.style.display = "block";
+        UI.progressTitle.innerHTML = "録音データの自動バックアップ状況";
+
         const dot = document.createElement('div');
-        dot.className = 'dot';
+        dot.className = 'dot processing';
         dot.id = `dot-${segmentIndex}`;
         UI.dotsGrid.appendChild(dot);
 
@@ -1480,18 +2084,66 @@
 
             const dotEl = document.getElementById(`dot-${segmentIndex}`);
             if (dotEl) {
+                dotEl.classList.remove('processing');
                 dotEl.classList.add(driveOk ? 'complete' : 'error');
             }
 
             if (!driveOk) {
-                console.warn(`⚠️ セグメント${segmentIndex}: Drive保存に失敗しました（この区間は文字起こしされません）。`);
+                console.warn(`⚠️ セグメント${segmentIndex}: Drive保存に失敗したため、自動再送キューに保持します。`);
+                AppState.pendingRetrySegments.push({
+                    base64,
+                    mimeType,
+                    meetingName,
+                    segmentIndex,
+                    templateType
+                });
             }
         }).catch(err => {
             console.error("❌ セグメント処理中に予期しないエラー:", err);
             const dotEl = document.getElementById(`dot-${segmentIndex}`);
             if (dotEl) {
+                dotEl.classList.remove('processing');
                 dotEl.classList.add('error');
             }
+        });
+    }
+
+    // 🌟 他アプリ切替中などに通信失敗したセグメントを自動的に再送するヘルパー
+    function retryPendingSegments() {
+        if (!AppState.pendingRetrySegments || AppState.pendingRetrySegments.length === 0) return;
+        if (!window.appController) return;
+
+        const segmentsToRetry = AppState.pendingRetrySegments.splice(0);
+        segmentsToRetry.forEach(item => {
+            AppState.audioSendQueue = AppState.audioSendQueue.then(async () => {
+                console.log(`🔄 セグメント${item.segmentIndex}のDrive保存を再試行します...`);
+                const currentMeetingName = UI.meetingNameInput.value.trim() || item.meetingName || "無題の会議";
+                const currentTemplateType = UI.templateSelect.value || item.templateType || "汎用議事録";
+
+                const ok = await window.appController.appendAudioChunk(
+                    item.base64,
+                    item.mimeType,
+                    currentMeetingName,
+                    item.segmentIndex,
+                    currentTemplateType
+                );
+
+                const dotEl = document.getElementById(`dot-${item.segmentIndex}`);
+                if (ok) {
+                    if (dotEl) {
+                        dotEl.classList.remove('error', 'processing');
+                        dotEl.classList.add('complete');
+                    }
+                    // 再送成功時は audioAppendFailures から該当チャンクを除外
+                    if (window.appController.audioAppendFailures) {
+                        window.appController.audioAppendFailures =
+                            window.appController.audioAppendFailures.filter(f => f.chunkIndex !== item.segmentIndex);
+                    }
+                    console.log(`✅ セグメント${item.segmentIndex}の再送に成功しました！`);
+                } else {
+                    AppState.pendingRetrySegments.push(item);
+                }
+            });
         });
     }
 
@@ -1500,6 +2152,7 @@
         AppState.isStopping = true;
         AppState.isRecording = false;
         AppState.isSegmentCycleActive = false;
+        AppState.segmentRotationPending = false;
 
         if (AppState.segmentTimerId) {
             clearTimeout(AppState.segmentTimerId);
@@ -1513,18 +2166,15 @@
 
         UI.mainRecordBtn.disabled = true;
         UI.mainRecordBtn.classList.remove('recording');
-        UI.mainRecordBtn.innerHTML = "🎤";
+        UI.mainRecordBtn.innerHTML = SVG_ICONS.mic;
         UI.mainRecordBtn.style.display = "none";
-        UI.statusText.innerHTML = "🎤 最後のセグメントを確定しています...";
-        UI.statusText.style.color = "#4dabf7";
+        if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "SAVING";
+        UI.statusText.innerHTML = "最後のセグメントを確定しています...";
+        UI.statusText.style.color = "var(--accent-copper)";
 
         try {
             await waitForRecorderToStop();
 
-            // 🌟 globalStream と rawMicStream の両方のトラックを個別に停止し、
-            //   AudioContext も teardownAudioProcessingChain() で確実に close() する。
-            //   globalStream だけを止めても、実際にマイクを掴んでいる rawMicStream 側は
-            //   停止されず、端末のマイク使用中インジケーターが消えない不具合になる。
             if (AppState.globalStream) {
                 AppState.globalStream.getTracks().forEach(track => track.stop());
                 AppState.globalStream = null;
@@ -1535,20 +2185,17 @@
             }
             teardownAudioProcessingChain();
 
-            UI.statusText.innerHTML = "✨ 最後の音声データを保存中...";
+            // 未送信・再送待ちのセグメントがあれば最後にもう一度再送キューへ乗せる
+            retryPendingSegments();
+
+            UI.statusText.innerHTML = "最後の音声データを保存中...";
             await AppState.audioSendQueue;
 
             if (!window.appController) throw new Error("現場監督のプログラムが読み込まれていません。");
 
             const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
 
-            // 🌟 音声の確定保存（finalizeAudioAndGetResult）のみ実行して即座に案内を出す。
-            //   文字起こし・議事録生成は、GAS側の時間主導型トリガー
-            //   （processQueueTrigger）がバックグラウンドで自動的に検出・処理する。
-            //   ユーザーは録音を止めたら即座にアプリを閉じてよく、数分後に
-            //   ドライブの「レコーダー/議事録等」フォルダを確認すれば結果が
-            //   置かれている、という体験になる。
-            UI.statusText.innerHTML = "🔊 音声データを確定保存しています...";
+            UI.statusText.innerHTML = "音声データを確定保存しています...";
             UI.progressContainer.style.display = "block";
             UI.progressTitle.innerHTML = "音声データの確認中...";
 
@@ -1558,8 +2205,9 @@
             } catch (audioError) {
                 console.error("❌ 音声確定処理が失敗しました:", audioError);
                 UI.progressTitle.innerHTML = "⚠️ 音声データの確認に失敗しました";
-                UI.statusText.innerHTML = "エラー発生（お助けモードを確認してください）";
+                UI.statusText.innerHTML = "エラー発生（手動再開を確認してください）";
                 UI.statusText.style.color = "#fa5252";
+                if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "ERROR";
                 alert(
                     "音声データの確認に失敗しました。\n" +
                     "録音の各セグメントは、録音中にドライブの「レコーダー/音声データ」フォルダ内の" +
@@ -1570,12 +2218,11 @@
                 return;
             }
 
-            // 🌟【2026-10-19追加】サーバー側にセッションフォルダが見つからなかった場合
-            //   （Drive保存がすべて失敗した場合など）は、確定済みとして扱わない。
             if (audioResult && audioResult.audioFinalized === false) {
                 UI.progressTitle.innerHTML = "⚠️ 保存された音声が見つかりません";
                 UI.statusText.innerHTML = "エラー発生";
                 UI.statusText.style.color = "#fa5252";
+                if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "ERROR";
                 alert(
                     "サーバー側に保存された音声データが見つかりませんでした。\n" +
                     "通信環境をご確認のうえ、もう一度録音をお試しください。"
@@ -1585,10 +2232,10 @@
 
             UI.progressTitle.innerHTML = "✅ 音声データの確認が完了しました";
             UI.statusText.innerHTML = "タップして新しい録音を開始";
-            UI.statusText.style.color = "#868e96";
+            UI.statusText.style.color = "var(--text-secondary)";
+            if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "READY";
             UI.mainRecordBtn.style.display = "flex";
 
-            // 🌟 Drive保存の失敗は、ここで警告する（その区間は文字起こしに含まれない）。
             if (window.appController.audioAppendFailures && window.appController.audioAppendFailures.length > 0) {
                 const failedIndexes = window.appController.audioAppendFailures
                     .map(f => f.chunkIndex + 1)
@@ -1599,8 +2246,6 @@
                 );
             }
 
-            // 🌟 音声の確定保存が成功した時点で、フロント側はもうこの録音の
-            //   処理に関与しないため、状態をクリアして次回の録音に備える。
             window.appController.clearState();
 
             alert(
@@ -1613,7 +2258,7 @@
 
         } catch (err) {
             alert("エラーが発生しました: " + err.message + "\n（音声データは既に確定保存されている可能性があります）");
-            UI.statusText.innerHTML = "エラー発生（お助けモードを確認してください）";
+            UI.statusText.innerHTML = "エラー発生（手動再開を確認してください）";
             UI.statusText.style.color = "#fa5252";
         } finally {
             stopPseudoSleepCycle();
@@ -1649,7 +2294,7 @@
     }
 
     // ==========================================
-    // ⏱️ 経過時間表示（長時間録音の目安用）
+    // ⏱️ デジタルタイムカウンター表示
     // ==========================================
     function startElapsedTimeDisplay() {
         updateElapsedTimeText();
@@ -1660,7 +2305,7 @@
             clearInterval(AppState.elapsedTimerId);
             AppState.elapsedTimerId = null;
         }
-        UI.elapsedTime.textContent = "";
+        UI.elapsedTime.textContent = "00:00:00";
     }
     function updateElapsedTimeText() {
         if (!AppState.recordingStartedAt) return;
@@ -1668,7 +2313,7 @@
         const h = String(Math.floor(sec / 3600)).padStart(2, '0');
         const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
         const s = String(sec % 60).padStart(2, '0');
-        UI.elapsedTime.textContent = `経過時間 ${h}:${m}:${s}`;
+        UI.elapsedTime.textContent = `${h}:${m}:${s}`;
 
         if (AppState.isPseudoSleeping) {
             updateSleepOverlayElapsedText();
