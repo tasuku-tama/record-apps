@@ -1108,21 +1108,7 @@
             </div>
         </div>
 
-        <div class="input-group">
-            <label>
-                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                </svg>
-                AI処理モード
-            </label>
-            <select id="modeSelect">
-                <option value="1">① 録音保存のみ</option>
-                <option value="2">② 録音 ＋ AI文字起こし</option>
-                <option value="3" selected>③ 録音 ＋ 文字起こし ＋ 議事録生成</option>
-            </select>
-        </div>
-
-        <div class="input-group fade-in" id="templateGroup">
+        <div class="input-group" id="templateGroup">
             <label>
                 <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -1311,8 +1297,6 @@
     };
 
     const UI = {
-        modeSelect: document.getElementById('modeSelect'),
-        templateGroup: document.getElementById('templateGroup'),
         meetingNameInput: document.getElementById('meetingNameInput'),
         meetingNameMicBtn: document.getElementById('meetingNameMicBtn'),
         templateSelect: document.getElementById('templateSelect'),
@@ -1382,17 +1366,6 @@
         } else {
             UI.meetingNameMicBtn.style.display = 'none';
         }
-
-        // モード切替のUI制御
-        UI.modeSelect.addEventListener('change', (e) => {
-            if (window.appController) window.appController.state.mode = e.target.value;
-            if (e.target.value === "3") {
-                UI.templateGroup.style.display = "block";
-                UI.templateGroup.classList.add('fade-in');
-            } else {
-                UI.templateGroup.style.display = "none";
-            }
-        });
 
         // パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
         const ALL_PANELS = [
