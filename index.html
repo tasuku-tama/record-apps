@@ -1268,11 +1268,38 @@
             }
 
             if (chain) {
-                AppState.audioContext = chain.audioContext;
-                AppState.processedStream = chain.processedStream;
-                AppState.audioProcessingNodes = chain.nodes;
-                AppState.globalStream = chain.processedStream;
-                console.log("🎚️ 音声前処理（ハイパスフィルタ＋コンプレッサー）を適用して録音します。");
+                // 🌟 iPhone（iOS Safari）対策：
+                //   getUserMedia の await 後に生成した AudioContext は "suspended" 状態に
+                //   なることがあり、そのままでは出力ストリームが完全な無音になる。
+                //   録音開始前に必ず resume() を呼び出し、それでも running にならない場合は
+                //   無音化を防ぐため前処理なしの生ストリーム（rawMicStream）へフォールバックする。
+                if (chain.audioContext.state !== 'running') {
+                    try {
+                        await chain.audioContext.resume();
+                    } catch (resumeErr) {
+                        console.warn("⚠️ AudioContextの初回resume()に失敗しました:", resumeErr);
+                    }
+                }
+
+                if (chain.audioContext.state === 'running') {
+                    AppState.audioContext = chain.audioContext;
+                    AppState.processedStream = chain.processedStream;
+                    AppState.audioProcessingNodes = chain.nodes;
+                    AppState.globalStream = chain.processedStream;
+
+                    // 録音中にOS割り込み等で suspended / interrupted になった場合の自動復帰
+                    chain.audioContext.onstatechange = () => {
+                        if (AppState.isRecording && AppState.audioContext && AppState.audioContext.state !== 'running') {
+                            console.warn("⚠️ AudioContextの状態が変化しました (" + AppState.audioContext.state + ")。resume()を試みます。");
+                            AppState.audioContext.resume().catch(() => {});
+                        }
+                    };
+                    console.log("🎚️ 音声前処理（ハイパスフィルタ＋コンプレッサー）を適用して録音します。");
+                } else {
+                    console.warn("⚠️ AudioContextがrunning状態にならないため（state=" + chain.audioContext.state + "）、無音防止のため生ストリームで録音します。");
+                    try { chain.audioContext.close(); } catch (e) {}
+                    AppState.globalStream = AppState.rawMicStream;
+                }
             } else {
                 AppState.globalStream = AppState.rawMicStream;
                 console.log("ℹ️ 音声前処理なしで録音します（生のマイク入力をそのまま使用）。");
