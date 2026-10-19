@@ -6,7 +6,7 @@
     <title>らくらく議事録 | Effortless Care DX</title>
     <style>
         /* ==========================================
-           🎨 見た目リニューアル対応（今回の変更点）：
+           🎨 見た目リニューアル対応：
            ・「Webアプリ感」を減らし、ミニマル・プロフェッショナルな
              質感を目指した全面的なデザイン刷新。
            ・企業ロゴ（Effortless Care DXのECDマーク）をヘッダーに
@@ -96,10 +96,6 @@
 
         /* ==========================================
            🎨 ヘッダー ＆ ボタン
-           🌟【見た目リニューアル対応】：
-           従来は h2（絵文字＋「レコーダー」）のみのシンプルな構成
-           だったが、企業ロゴ・企業名・アプリタイトルの3要素を
-           上下2段で構成するデザインに変更した。
            上段：ロゴマーク＋企業名（小さく、控えめなグレー）
            下段：アプリタイトル「らくらく議事録」（太字・大きめ）
            ========================================== */
@@ -148,11 +144,8 @@
         
         .header-actions { position: relative; display: flex; align-items: center; margin-top: 2px; }
 
-        /* 🌟【見た目調整対応・新設】：
-           ヘッダーの「⋮」ボタンから開くドロップダウンメニュー。
-           手動再開・診断情報・設定の3項目をここに集約する。
-           他のパネル（recovery-panel系）とは別の見た目にし、
-           「ヘッダー直下に浮くメニュー」であることが分かるようにした。 */
+        /* 🌟 ヘッダーの「⋮」ボタンから開くドロップダウンメニュー。
+           手動再開・診断情報・設定の3項目をここに集約する。 */
         .header-menu {
             display: none;
             position: absolute;
@@ -204,8 +197,7 @@
         body.recording-active .header-menu-item:hover {
             background-color: #2a2d33;
         }
-        /* 🌟 メニュー展開中は「⋮」ボタンも他のアイコンボタン同様
-           active-panel と同じ強調色にする。 */
+        /* 🌟 メニュー展開中は「⋮」ボタンも強調色にする。 */
         #headerMenuBtn.active-panel {
             background: #e7f5ff;
             color: #4dabf7;
@@ -229,10 +221,6 @@
 
         /* ==========================================
            🎨 入力フォーム ＆ 音声入力ボタン
-           🌟【見た目リニューアル対応】：
-           境界線を薄く・柔らかく、フォーカス時の強調色を
-           アクセントオレンジ系に変更。内側にごく薄い陰影を
-           入れ、彫り込まれたような質感を持たせている。
            ========================================== */
         .input-group { margin-bottom: 20px; }
         .input-group label {
@@ -287,11 +275,6 @@
 
         /* ==========================================
            🎨 メイン録音エリア
-           🌟【見た目リニューアル対応】：
-           録音ボタンを、ロゴのアクセントカラー（控えめなオレンジ）を
-           使った、多層の陰影・内側ハイライトを持つボタンに変更した。
-           単純なフラットカラーではなく、グラデーション＋複数の
-           box-shadowレイヤーで立体感・質感を出している。
            ========================================== */
         .record-area {
             flex-grow: 1; display: flex; flex-direction: column;
@@ -360,11 +343,6 @@
            抑えるため、録音中は背景を暗いトーンに切り替える。
            有機ELディスプレイでは黒に近い表示ほど消費電力が下がるため、
            特にモバイル端末での長時間録音時に効果が期待できる。
-           🌟【見た目リニューアル対応】：
-           app-shell（外枠）・header-brand-name（企業名表記）にも
-           ダークトーン対応を追加した。ロゴ画像はそのまま使用し、
-           暗い背景に対してコントラストを保てるよう周囲の余白と
-           シャドウで視認性を確保する。
            ========================================== */
         body.recording-active {
             background-color: #16181c;
@@ -423,7 +401,6 @@
            実際のOSスリープはWake Lockでキャンセルし続けつつ、
            一定時間操作がなければ画面をほぼ黒くフェードさせることで、
            見た目上は消灯したように見せ、体感的な省電力感を出す。
-           有機ELディスプレイでは黒表示に近いほど実消費電力も下がる。
            タップすると即座に解除される。
            ========================================== */
         .pseudo-sleep-overlay {
@@ -470,9 +447,6 @@
 
         /* ==========================================
            🎨 進捗表示 ＆ パネル群
-           🌟【見た目リニューアル対応】：配色をモノトーン＋
-           控えめなアクセントカラーに統一。ドットの色も
-           鮮やかな青緑からトーンを落とした色に変更。
            ========================================== */
         .progress-container {
             display: none; background-color: #faf9f6; padding: 22px;
@@ -518,13 +492,8 @@
 
         /* ==========================================
            🎨 診断情報パネル（finishReason等の確認用）
-           🌟 新設（診断ログ強化対応）：
-           文字起こし・議事録生成の処理結果（finishReason・トークン数等）を
-           表示し、そのままAIへの不具合報告としてコピペできるようにするパネル。
-           他の recovery-panel（お助けモード・設定）と見た目のトーンを
-           揃えつつ、テキストエリアの高さは詰めすぎず・伸ばしすぎずの
-           バランスにしている（アプリ全体の縦スクロール量が
-           増えすぎないよう配慮）。
+           文字起こし・議事録生成の処理結果や通信エラーの詳細を表示し、
+           そのままAIへの不具合報告としてコピペできるようにするパネル。
            ========================================== */
         .recovery-panel.diagnostics {
             display: none;
@@ -564,10 +533,7 @@
 
         /* ==========================================
            🎨 フッター
-           🌟【見た目リニューアル対応・新設】：
            © 2026 Effortless Care DX の著作権表記。
-           控えめな薄いグレーで、アプリ本体の操作を邪魔しない
-           位置（画面最下部）に配置する。
            ========================================== */
         .app-footer {
             text-align: center;
@@ -595,13 +561,9 @@
             </div>
             <h2>らくらく議事録</h2>
         </div>
-        <!-- 🌟【見た目調整対応・変更点】：
-             従来はタイトルと「手動再開・診断情報・設定」の3ボタンが
-             同じ行に横並びになっており、スマホの画面幅ではタイトルが
-             1行に収まらず折り返されてしまっていた。
-             3ボタンを1つの「⋮（その他）」メニューに集約し、ヘッダーは
-             常に「タイトル＋メニューボタン1個」の2要素だけにすることで、
-             画面幅に関わらずタイトルが確実に1行に収まるようにした。 -->
+        <!-- 🌟 ヘッダーは常に「タイトル＋メニューボタン1個」の2要素だけにし、
+             画面幅に関わらずタイトルが確実に1行に収まるようにしている。
+             手動再開・診断情報・設定は「⋮」メニューに集約。 -->
         <div class="header-actions">
             <button class="btn-icon" title="メニュー" id="headerMenuBtn" aria-haspopup="true" aria-expanded="false">⋮</button>
             <div class="header-menu" id="headerMenu">
@@ -659,13 +621,14 @@
     </div>
 
     <div class="progress-container" id="progressContainer">
-        <div class="progress-title" id="progressTitle">AIが音声を処理中...</div>
+        <div class="progress-title" id="progressTitle">音声データを保存中...</div>
         <div class="dots-grid" id="dotsGrid"></div>
     </div>
 
     <!-- お助けモード（自動再開）パネル -->
-    <!-- 🌟 変更点：リンクの手入力は廃止。保存済みsessionIdを使い、
-         サーバー側の実データを根拠に自動で状態判定・再開する方式にした。 -->
+    <!-- 🌟 保存済みsessionIdを使い、サーバー側の実データを根拠に
+         自動で状態判定・再開する方式。再開は「音声の確定保存」のみを行い、
+         文字起こし・議事録生成はバックグラウンド処理に任せる。 -->
     <div class="recovery-panel help" id="recoveryPanel">
         <h4>🛠 お助けモード（自動再開）</h4>
         <div id="recoveryStatusText" style="font-size: 13px; color: #868e96; line-height: 1.6; margin-bottom: 12px;">
@@ -674,14 +637,14 @@
         <button class="recovery-btn" id="recoveryActionBtn" style="display:none;"></button>
     </div>
 
-    <!-- 🌟 新設（診断ログ強化対応）：診断情報パネル（finishReason・トークン数などの確認用） -->
+    <!-- 診断情報パネル（finishReason・トークン数・通信エラーなどの確認用） -->
     <div class="recovery-panel diagnostics" id="diagnosticsPanel">
         <h4>🩺 診断情報（AIへの共有用）</h4>
         <div style="font-size: 12px; color: #868e96; margin-bottom: 10px; line-height: 1.6;">
-            文字起こし・議事録生成の処理結果（finishReason・トークン数等）です。<br>
+            通信エラーや処理結果（finishReason・トークン数等）の記録です。<br>
             「途中で止まった」等の不具合報告の際は、このテキストをそのままコピーして共有してください。
         </div>
-        <textarea class="diagnostics-textarea" id="diagnosticsText" readonly placeholder="録音・文字起こし・議事録生成が完了すると、ここに診断情報が表示されます。"></textarea>
+        <textarea class="diagnostics-textarea" id="diagnosticsText" readonly placeholder="通信エラーや処理結果が発生すると、ここに診断情報が表示されます。"></textarea>
         <button class="recovery-btn" id="copyDiagnosticsBtn">📋 診断情報をコピー</button>
     </div>
 
@@ -695,7 +658,7 @@
         </div>
     </div>
 
-    <!-- 🌟【見た目リニューアル対応・新設】：著作権表記フッター -->
+    <!-- 著作権表記フッター -->
     <div class="app-footer">© 2026 Effortless Care DX</div>
 </div>
 </div>
@@ -709,11 +672,11 @@
     </div>
 </div>
 
-<!-- キャッシュ強制回避用のバージョン記述を追加(v=5.2 デバッグ整理版) -->
+<!-- キャッシュ強制回避用のバージョン記述（v=6.0：バックグラウンド処理方式への整理版） -->
 <!-- 🌟 recorder-controller.js の読み込み成否はコンソールログにのみ残す。
      読み込みに失敗した場合はコンソールで確認できる（通常操作の
      妨げにならないよう、アラートでのポップアップは行わない）。 -->
-<script src="js/recorder-controller.js?v=5.2"
+<script src="js/recorder-controller.js?v=6.0"
     onload="console.log('✅ recorder-controller.js 読み込み成功');"
     onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
 ></script>
@@ -723,8 +686,12 @@
     // 🔧 設定と状態管理
     // ==========================================
     const APP_CONFIG = {
-        SEGMENT_INTERVAL_MS: 600000, // 本番運用: 10分（テストする場合は短い値に変更してください）
-        PSEUDO_SLEEP_DELAY_MS: 15000 // 🌟 追加：録音中、操作がないままこの時間が経つと疑似スリープ表示になる
+        // 🌟 録音を区切る間隔。10分（600000）にすると1ファイルあたりが長くなり、
+        //   5分（300000）にすると、アプリが予期せず落ちた場合に失われる音声が
+        //   最大5分に抑えられる。ファイル数が増えるほど、ファイル間での
+        //   話者ラベルの振り直しが増える点とのバランスで選ぶ。
+        SEGMENT_INTERVAL_MS: 300000,
+        PSEUDO_SLEEP_DELAY_MS: 15000 // 録音中、操作がないままこの時間が経つと疑似スリープ表示になる
     };
 
     const AppState = {
@@ -743,7 +710,7 @@
         audioSendQueue: Promise.resolve(),
         segmentTimerId: null,
         isSegmentCycleActive: false,
-        // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
+        // 🌟 Web Audio API前処理：
         //   マイク入力（rawMicStream）に対してハイパスフィルタ＋
         //   ダイナミクス圧縮をかけた後の出力ストリームを
         //   processedStream として MediaRecorder に渡す。
@@ -778,12 +745,10 @@
         settingsPanel: document.getElementById('settingsPanel'),
         gasUrlInput: document.getElementById('gasUrlInput'),
         saveSettingsBtn: document.getElementById('saveSettingsBtn'),
-        // 🌟 新設（診断ログ強化対応）
         showDiagnosticsBtn: document.getElementById('showDiagnosticsBtn'),
         diagnosticsPanel: document.getElementById('diagnosticsPanel'),
         diagnosticsText: document.getElementById('diagnosticsText'),
         copyDiagnosticsBtn: document.getElementById('copyDiagnosticsBtn'),
-        // 🌟 新設（見た目調整対応）：ヘッダーの「⋮」その他メニュー
         headerMenuBtn: document.getElementById('headerMenuBtn'),
         headerMenu: document.getElementById('headerMenu')
     };
@@ -840,19 +805,10 @@
         // ==========================================
         // 🌟 パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
         //
-        // 🛠 整理の経緯：
-        //   3つのパネルそれぞれで「他の2つを閉じる」処理を個別に
-        //   書いていたため、パネルが増えるたびに全箇所を修正する必要が
-        //   あり、UIの見た目も揃いにくかった。togglePanel() に集約し、
-        //   ヘッダーのボタン側にも「今開いているパネルはどれか」が
-        //   一目で分かるよう active-panel クラスを付け外しする。
-        //
-        // 🛠【見た目調整対応・変更点】：
-        //   3つのボタンをヘッダー直下の「⋮」その他メニュー内に
-        //   移設したことに伴い、togglePanel() 呼び出し前に必ず
-        //   ヘッダーメニュー自体を閉じるようにした
-        //   （メニュー項目をタップしたら、メニューは閉じてパネルだけが
-        //   開く、という一般的なドロップダウンメニューの挙動に揃える）。
+        // togglePanel() に集約し、ヘッダーのボタン側にも
+        // 「今開いているパネルはどれか」が一目で分かるよう
+        // active-panel クラスを付け外しする。
+        // メニュー項目をタップしたら、メニューは閉じてパネルだけが開く。
         // ==========================================
         const ALL_PANELS = [
             { panel: UI.recoveryPanel, btn: UI.showRecoveryBtn },
@@ -884,9 +840,8 @@
             }
         }
 
-        // 🌟 新設（見た目調整対応）：ヘッダーの「⋮」その他メニューの開閉。
-        //   メニューを開くタイミングで、他の3パネルは念のため閉じておく
-        //   （メニューを開いた直後にパネルが被って表示される事故を防ぐ）。
+        // ヘッダーの「⋮」その他メニューの開閉。
+        // メニューを開くタイミングで、他の3パネルは念のため閉じておく。
         UI.headerMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = UI.headerMenu.classList.contains('open');
@@ -906,16 +861,15 @@
             UI.headerMenuBtn.setAttribute('aria-expanded', 'true');
         });
 
-        // 🌟 メニュー外をタップ・クリックしたら自動的に閉じる。
+        // メニュー外をタップ・クリックしたら自動的に閉じる。
         document.addEventListener('click', (e) => {
             if (UI.headerMenu.classList.contains('open') && !UI.headerMenu.contains(e.target)) {
                 closeHeaderMenu();
             }
         });
 
-        // 🌟 変更点（自動再開対応）：お助けモードを開いたタイミングで、
-        //   保存済みsessionIdを使った自動状態確認（checkRecoveryStatus）を実行する。
-        //   ユーザーはリンクやパスを入力する必要がない。
+        // お助けモードを開いたタイミングで、保存済みsessionIdを使った
+        // 自動状態確認（checkRecoveryStatus）を実行する。
         UI.showRecoveryBtn.addEventListener('click', () => {
             togglePanel(UI.recoveryPanel, UI.showRecoveryBtn, checkRecoveryStatus);
         });
@@ -926,11 +880,6 @@
             });
         });
 
-        // 🔍【デバッグ対応・一時変更】：
-        //   「設定を保存」ボタンを押した際に、実際に何が入力欄に入っており、
-        //   localStorageに何が保存され、appController.gasUrlに何が
-        //   反映されているかを、その場でアラート表示して確認できるようにした。
-        //   原因判明後はこのデバッグ用アラートは元に戻す想定。
         UI.saveSettingsBtn.addEventListener('click', () => {
             const url = UI.gasUrlInput.value.trim();
             if(url) {
@@ -944,14 +893,13 @@
             }
         });
 
-        // 🌟 新設（診断ログ強化対応）：診断パネルの開閉
-        //   recorder-controller.js の DiagnosticsReporter.report() が
-        //   #diagnosticsPanel / #diagnosticsText を直接操作して自動表示するが、
-        //   ユーザーが手動でいつでも開けるよう、このボタンからも開閉できるようにする。
+        // 診断パネルの開閉
+        //   recorder-controller.js の DiagnosticsReporter が #diagnosticsPanel /
+        //   #diagnosticsText を直接操作して自動表示するが、
+        //   ユーザーが手動でいつでも開けるよう、このボタンからも開閉できる。
         if (UI.showDiagnosticsBtn) {
             UI.showDiagnosticsBtn.addEventListener('click', () => {
                 togglePanel(UI.diagnosticsPanel, UI.showDiagnosticsBtn, () => {
-                    // 🌟 既に保持されている診断情報があれば表示する
                     if (window.lastDiagnosticsText) {
                         UI.diagnosticsText.value = window.lastDiagnosticsText;
                     }
@@ -959,12 +907,12 @@
             });
         }
 
-        // 🌟 新設（診断ログ強化対応）：診断情報コピー・ボタン
+        // 診断情報コピー・ボタン
         if (UI.copyDiagnosticsBtn) {
             UI.copyDiagnosticsBtn.addEventListener('click', async () => {
                 const text = window.lastDiagnosticsText || UI.diagnosticsText.value;
                 if (!text) {
-                    alert("まだ診断情報がありません。録音・文字起こしを一度実行してください。");
+                    alert("まだ診断情報がありません。");
                     return;
                 }
                 try {
@@ -986,7 +934,13 @@
     }
 
     // ==========================================
-    // 🛠 お助けモード：自動再開ロジック（案A・連番フォルダ保存方式対応）
+    // 🛠 お助けモード：自動再開ロジック
+    //
+    // 🛠【2026-10-19変更】バックグラウンド処理方式に統一。
+    //   再開は「音声の確定保存（finalizeAudio）」のみを行う。
+    //   これによりGAS側で録音完了フラグが立ち、文字起こし・議事録生成は
+    //   時間主導型トリガー（processQueueTrigger）が自動的に処理する。
+    //   画面側では文字起こしを実行しない。
     // ==========================================
     async function checkRecoveryStatus() {
         UI.recoveryActionBtn.style.display = "none";
@@ -1001,21 +955,6 @@
         if (!window.appController.gasUrl) {
             UI.recoveryStatusText.innerHTML =
                 "⚠️ GASのURLが設定されていないため、状態を確認できません。先に⚙️設定を行ってください。";
-            return;
-        }
-
-        if (window.appController.hasPendingGeminiFileUris()) {
-            const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
-            const templateType = UI.templateSelect.value;
-            const uploadedCount = window.appController.state.geminiFileUris.length;
-
-            UI.recoveryStatusText.innerHTML =
-                `✨ <b>AIアップロード済みの録音データが見つかりました。</b>` +
-                `（${uploadedCount}セグメント分）<br>` +
-                `重い音声の再送信なしで、すぐに文字起こし・議事録の生成から再開できます。`;
-            UI.recoveryActionBtn.textContent = "✨ 文字起こし・議事録の生成から再開する";
-            UI.recoveryActionBtn.style.display = "block";
-            UI.recoveryActionBtn.onclick = () => runRecoveryFromGeminiFileUris(meetingName, templateType);
             return;
         }
 
@@ -1041,8 +980,8 @@
                 `✅ <b>音声データは専用フォルダに保存済みです。</b>` +
                 `（フォルダ名: ${statusResult.audioFileName}、ファイル数: ${statusResult.fileCount}件）<br>` +
                 `🔊 音声データ自体は失われていません。<br>` +
-                `文字起こし・議事録の生成から再開します。`;
-            UI.recoveryActionBtn.textContent = "文字起こし・議事録の生成から再開する";
+                `録音を確定し、文字起こし・議事録の生成をバックグラウンドで再開します。`;
+            UI.recoveryActionBtn.textContent = "録音を確定して、バックグラウンド処理を開始する";
             UI.recoveryActionBtn.style.display = "block";
             UI.recoveryActionBtn.onclick = () => runRecoveryTranscriptPending(
                 statusResult.audioFolderId, meetingName, templateType
@@ -1055,144 +994,33 @@
         }
     }
 
-    async function runRecoveryAudioPending(meetingName, templateType) {
-        UI.recoveryActionBtn.disabled = true;
-        UI.recoveryStatusText.innerHTML = "🔊 音声データを1本にまとめています...";
-
-        try {
-            const audioResult = await window.appController.resumeFromAudioPending(meetingName);
-
-            if (window.appController.hasPendingGeminiFileUris()) {
-                UI.recoveryStatusText.innerHTML =
-                    `✅ 音声データの確認が完了しました！<br>` +
-                    `続けて文字起こし・議事録の生成に進みます...（数分かかることがあります）`;
-
-                const result = await window.appController.transcribeFromGeminiFileUris(
-                    meetingName, templateType
-                );
-
-                if (result) {
-                    finishRecoveryUI(result);
-                } else {
-                    UI.recoveryStatusText.innerHTML =
-                        "✅ 音声データの確認は完了しました。（文字起こしは別途「手動再開」から再度お試しください）";
-                }
-            } else {
-                UI.recoveryStatusText.innerHTML =
-                    `✅ 音声データの確認が完了しました！<br>` +
-                    `AIアップロード済みのデータが見つからないため、専用フォルダ内の音声ファイルから` +
-                    `文字起こしをやり直します...（音声全体をまとめて処理するため、数分かかることがあります）`;
-
-                const result = await window.appController.transcribeFinalizedAudio(
-                    meetingName, templateType
-                );
-
-                if (result) {
-                    finishRecoveryUI(result);
-                } else {
-                    UI.recoveryStatusText.innerHTML =
-                        "✅ 音声データの確認は完了しました。（文字起こしは別途「手動再開」から再度お試しください）";
-                }
-            }
-        } catch (err) {
-            console.error("❌ お助けモード：音声確認の再開に失敗しました", err);
-            UI.recoveryStatusText.innerHTML =
-                "⚠️ 音声データの確認に失敗しました。もう一度お試しいただくか、" +
-                "Googleドライブの「レコーダー/音声データ」フォルダをご確認ください。<br>詳細: " + err.message;
-        } finally {
-            UI.recoveryActionBtn.disabled = false;
-        }
-    }
-
-    // 🌟【不具合修正・自動フォールバック対応】：
-    //   録音中にGeminiへアップロード済みだった fileUri（localStorageに
-    //   永続化されている）を使って再開する経路。
-    //   バックグラウンド処理の導入に伴い、この fileUri が既に
-    //   無効になっている（Gemini側で削除済み、または元々別の理由で
-    //   使用不可）ケースが発生しうる。その場合、単にエラーを表示する
-    //   のではなく、ドライブに確定保存済みの音声ファイルから
-    //   再アップロードして再開する経路（runRecoveryTranscriptPending
-    //   相当の処理）に自動的にフォールバックする。
-    async function runRecoveryFromGeminiFileUris(meetingName, templateType) {
-        UI.recoveryActionBtn.disabled = true;
-        UI.recoveryStatusText.innerHTML = "✨ アップロード済みの音声データから文字起こし中です...（数分かかることがあります）";
-
-        try {
-            const result = await window.appController.transcribeFromGeminiFileUris(
-                meetingName, templateType
-            );
-
-            if (result) {
-                finishRecoveryUI(result);
-            } else {
-                UI.recoveryStatusText.innerHTML =
-                    "⚠️ 処理がスキップされました（既に処理中か、確定済みの可能性があります）。";
-            }
-        } catch (err) {
-            console.error("❌ お助けモード：fileUriからの文字起こし再開に失敗しました。ドライブからの再開にフォールバックします。", err);
-
-            // 🌟 アップロード済みfileUriが無効だった可能性が高いため、
-            //   localStorageに残っている古い状態をクリアし、
-            //   ドライブ上に保存済みの音声フォルダを探して
-            //   そちらから再開する経路にフォールバックする。
-            UI.recoveryStatusText.innerHTML =
-                "⚠️ アップロード済みデータでの再開に失敗しました。<br>" +
-                "ドライブに保存されている音声データからの再開を試みます...（数分かかることがあります）";
-
-            try {
-                const statusResult = await window.appController.checkSessionStatus();
-
-                if (statusResult.status === "audio_saved" && statusResult.audioFolderId) {
-                    await runRecoveryTranscriptPending(
-                        statusResult.audioFolderId, meetingName, templateType
-                    );
-                } else {
-                    UI.recoveryStatusText.innerHTML =
-                        "⚠️ ドライブ側にも対応する音声データが見つかりませんでした。<br>" +
-                        "お手数ですが、Googleドライブの「レコーダー/音声データ」フォルダを直接ご確認ください。<br>" +
-                        "詳細: " + err.message;
-                }
-            } catch (fallbackErr) {
-                console.error("❌ お助けモード：ドライブからのフォールバックにも失敗しました", fallbackErr);
-                UI.recoveryStatusText.innerHTML =
-                    "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + fallbackErr.message;
-            }
-        } finally {
-            UI.recoveryActionBtn.disabled = false;
-        }
-    }
-
     async function runRecoveryTranscriptPending(audioFolderId, meetingName, templateType) {
         UI.recoveryActionBtn.disabled = true;
-        UI.recoveryStatusText.innerHTML = "✨ 専用フォルダ内の音声データからAIが文字起こし中です...";
+        UI.recoveryStatusText.innerHTML = "🔊 音声データを確定し、バックグラウンド処理に引き継いでいます...";
 
         try {
-            const mimeType = window.appController.state.mimeType || AppState.mimeType;
-            const result = await window.appController.resumeFromTranscriptPending(
-                audioFolderId, mimeType, meetingName, templateType
-            );
-            finishRecoveryUI(result);
-        } catch (err) {
-            console.error("❌ お助けモード：文字起こしの再開に失敗しました", err);
+            const result = await window.appController.finalizeAudioAndGetResult(meetingName);
+
+            if (result && result.audioFinalized === false) {
+                UI.recoveryStatusText.innerHTML =
+                    "⚠️ サーバー側に保存された音声データが見つかりませんでした。<br>" +
+                    "Googleドライブの「レコーダー/音声データ」フォルダを直接ご確認ください。";
+                return;
+            }
+
+            window.appController.clearState();
+
             UI.recoveryStatusText.innerHTML =
-                "⚠️ 文字起こし・議事録生成の再開に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
+                "🎉 音声データの確認が完了しました。<br>" +
+                "文字起こし・議事録の生成は、バックグラウンドで自動的に処理されます。" +
+                "数分後に、Googleドライブの「レコーダー/議事録等」フォルダをご確認ください。";
+            UI.recoveryActionBtn.style.display = "none";
+        } catch (err) {
+            console.error("❌ お助けモード：音声データの確定に失敗しました", err);
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ 音声データの確定に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
         } finally {
             UI.recoveryActionBtn.disabled = false;
-        }
-    }
-
-    function finishRecoveryUI(result) {
-        UI.recoveryStatusText.innerHTML = "🎉 再開処理が完了しました！";
-        UI.recoveryActionBtn.style.display = "none";
-
-        if (result.documentUrl) {
-            if (confirm("議事録の生成が完了しました！議事録ドキュメントを開きますか？")) {
-                window.open(result.documentUrl, "_blank");
-            }
-        } else if (result.transcriptUrl) {
-            if (confirm("文字起こしが完了しました！文字起こしドキュメントを開きますか？")) {
-                window.open(result.transcriptUrl, "_blank");
-            }
         }
     }
 
@@ -1308,7 +1136,7 @@
 
     async function handleRecordButtonClick() {
         if (!window.appController || !window.appController.gasUrl) {
-            alert("初回設定が必要です！\n右上の「⚙️設定」ボタンから、GASウェブアプリのURLを登録してください。");
+            alert("初回設定が必要です！\n右上の「⋮」メニューの「設定」から、GASウェブアプリのURLを登録してください。");
             if(UI.settingsPanel.style.display !== 'block') UI.settingsBtn.click();
             return;
         }
@@ -1414,18 +1242,11 @@
 
     async function startRecording() {
         try {
-            // 🌟【文字起こし精度向上対応】：
-            //   従来は { audio: true } のみを指定しており、ブラウザ・端末側が
-            //   持つ音声処理機能（エコーキャンセル、ノイズ抑制、自動音量調整）を
-            //   一切活用していなかった。
-            //   echoCancellation / noiseSuppression / autoGainControl を
-            //   明示的に有効化することで、多くのAndroid端末ではハードウェア
-            //   支援によるノイズ抑制・音量正規化が働くようになり、
-            //   Gemini側での聞き取り精度（[聞き取り不能]の発生率低減）が
-            //   改善することを期待した変更。
-            //   これらの制約は「ベストエフォート」であり、対応していない
-            //   端末・ブラウザでは単純に無視される（エラーにはならない）ため、
-            //   後方互換上のリスクは低い。
+            // 🌟 echoCancellation / noiseSuppression / autoGainControl を明示的に有効化する。
+            //   多くのAndroid端末ではハードウェア支援によるノイズ抑制・音量正規化が
+            //   働き、聞き取り精度の改善が期待できる。
+            //   これらの制約は「ベストエフォート」であり、対応していない端末・
+            //   ブラウザでは単純に無視される（エラーにはならない）。
             AppState.rawMicStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -1434,13 +1255,10 @@
                 }
             });
 
-            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
-            //   生のマイクストリームに対してハイパスフィルタ＋
-            //   コンプレッサーをかけた後のストリームを、実際に
-            //   MediaRecorderへ渡すストリームとして採用する。
-            //   何らかの理由でフィルタチェーンの構築に失敗した場合は、
-            //   前処理なしの生ストリームにフォールバックし、
-            //   録音自体は継続できるようにする。
+            // 🌟 生のマイクストリームに対してハイパスフィルタ＋コンプレッサーを
+            //   かけた後のストリームを、実際にMediaRecorderへ渡すストリームとして採用する。
+            //   フィルタチェーンの構築に失敗した場合は、前処理なしの生ストリームに
+            //   フォールバックし、録音自体は継続できるようにする。
             let chain = null;
             try {
                 chain = buildAudioProcessingChain(AppState.rawMicStream);
@@ -1496,8 +1314,7 @@
             startNewSegment();
 
         } catch (err) {
-            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
-            //   getUserMedia自体の失敗だけでなく、フィルタチェーン構築後の
+            // 🌟 getUserMedia自体の失敗だけでなく、フィルタチェーン構築後の
             //   処理（startNewSegment等）で例外が起きた場合も、
             //   ここまでに確保したマイクストリーム・AudioContextが
             //   残ったままにならないよう、念のため解放しておく。
@@ -1573,8 +1390,7 @@
             stopPseudoSleepCycle();
             releaseWakeLock();
 
-            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
-            //   予期しない中断時も、マイクストリーム（生・処理後の両方）と
+            // 🌟 予期しない中断時も、マイクストリーム（生・処理後の両方）と
             //   AudioContextを確実に解放する。これを怠ると、録音が
             //   異常終了した際に端末のマイクが「使用中」のまま残り、
             //   次回の録音開始やマイクの権限周りで不具合が起きうる。
@@ -1594,7 +1410,10 @@
             UI.mainRecordBtn.disabled = false;
             alert(
                 "録音が予期せず中断されました。画面スリープや他アプリへの切り替えが原因の可能性があります。\n" +
-                "これまでに録音できた部分は保存されていますが、続きを録音する場合は「録音開始」を押して新しく録音を始めてください。"
+                "これまでに保存できた部分は、Googleドライブに残っています。\n" +
+                "「⋮」メニューの「手動再開」から、保存済みの録音の文字起こしを開始できます。\n" +
+                "（そのままにしておいても、最後の保存から約20分後に、自動的に処理が始まります）\n\n" +
+                "続きを録音する場合は、「録音開始」を押して新しく録音を始めてください。"
             );
         };
 
@@ -1607,13 +1426,17 @@
         }, APP_CONFIG.SEGMENT_INTERVAL_MS);
     }
 
+    // 🌟【2026-10-19変更】
+    //   バックグラウンド処理（processQueueTrigger）は、Driveに保存された
+    //   音声ファイルを自分でGeminiへアップロードして処理するため、
+    //   録音中のGeminiへのアップロードは行わない（通信量・GAS負荷の削減、
+    //   Gemini側に音声を残さないため）。Drive保存のみ行い、
+    //   ドットの色もDrive保存の成否で決める。
     function handleSegmentComplete(segmentBlob, mimeType, segmentIndex) {
         const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
-        // 🌟【バックグラウンド処理対応・テンプレート引き継ぎ】：
-        //   録音開始前（または録音中）に選択されているテンプレート
-        //   種別を、チャンク保存のたびにGAS側へ渡す。GAS側では
-        //   セッションフォルダの説明文に保存され、バックグラウンド
-        //   処理が議事録生成時にこれを使用する。
+        // 🌟 録音中に選択されているテンプレート種別を、チャンク保存のたびにGAS側へ渡す。
+        //   GAS側ではセッションフォルダの説明文に保存され、バックグラウンド処理が
+        //   議事録生成時にこれを使用する（最初のチャンクで作られたフォルダの値が使われる）。
         const templateType = UI.templateSelect.value || "汎用議事録";
 
         const dot = document.createElement('div');
@@ -1624,32 +1447,17 @@
         AppState.audioSendQueue = AppState.audioSendQueue.then(async () => {
             const base64 = await blobToBase64(segmentBlob);
 
-            const results = await Promise.allSettled([
-                window.appController
-                    ? window.appController.appendAudioChunk(base64, mimeType, meetingName, segmentIndex, templateType)
-                    : Promise.resolve(false),
-                window.appController
-                    ? window.appController.uploadChunkToGeminiAndStore(base64, mimeType, segmentIndex)
-                    : Promise.resolve(false)
-            ]);
-
-            const driveOk = results[0].status === 'fulfilled' && results[0].value === true;
-            const geminiOk = results[1].status === 'fulfilled' && results[1].value === true;
+            const driveOk = window.appController
+                ? await window.appController.appendAudioChunk(base64, mimeType, meetingName, segmentIndex, templateType)
+                : false;
 
             const dotEl = document.getElementById(`dot-${segmentIndex}`);
             if (dotEl) {
-                if (geminiOk) {
-                    dotEl.classList.add('complete');
-                } else {
-                    dotEl.classList.add('error');
-                }
+                dotEl.classList.add(driveOk ? 'complete' : 'error');
             }
 
             if (!driveOk) {
-                console.warn(`⚠️ セグメント${segmentIndex}: Drive保存に失敗しました（音声原本バックアップに影響）。`);
-            }
-            if (!geminiOk) {
-                console.warn(`⚠️ セグメント${segmentIndex}: Geminiアップロードに失敗しました（文字起こしに影響）。`);
+                console.warn(`⚠️ セグメント${segmentIndex}: Drive保存に失敗しました（この区間は文字起こしされません）。`);
             }
         }).catch(err => {
             console.error("❌ セグメント処理中に予期しないエラー:", err);
@@ -1686,18 +1494,10 @@
         try {
             await waitForRecorderToStop();
 
-            // 🌟【文字起こし精度向上対応・Web Audio API前処理】：
-            //   従来は AppState.globalStream（MediaRecorderに渡していた方の
-            //   ストリーム）のトラックだけを stop() していた。
-            //   前処理チェーンを導入した後は、globalStream が
-            //   processedStream（MediaStreamDestination由来）を指すため、
-            //   これだけを止めても「実際にマイクを掴んでいる」
-            //   rawMicStream 側のトラックは停止されず、マイクが
-            //   解放されない（端末のマイク使用中インジケーターが
-            //   消えない）不具合になる。
-            //   そのため、globalStream と rawMicStream の両方のトラックを
-            //   個別に停止し、AudioContext も teardownAudioProcessingChain()
-            //   で確実に close() する。
+            // 🌟 globalStream と rawMicStream の両方のトラックを個別に停止し、
+            //   AudioContext も teardownAudioProcessingChain() で確実に close() する。
+            //   globalStream だけを止めても、実際にマイクを掴んでいる rawMicStream 側は
+            //   停止されず、端末のマイク使用中インジケーターが消えない不具合になる。
             if (AppState.globalStream) {
                 AppState.globalStream.getTracks().forEach(track => track.stop());
                 AppState.globalStream = null;
@@ -1708,26 +1508,18 @@
             }
             teardownAudioProcessingChain();
 
-            UI.statusText.innerHTML = "✨ 最後の音声データを保存・アップロード中...";
+            UI.statusText.innerHTML = "✨ 最後の音声データを保存中...";
             await AppState.audioSendQueue;
 
             if (!window.appController) throw new Error("現場監督のプログラムが読み込まれていません。");
 
             const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
 
-            // 🌟【バックグラウンド処理対応・全面改訂】：
-            //   従来はここで finalizeAudioAndGetResult と
-            //   transcribeFromGeminiFileUris を並行実行し、フロント
-            //   （このタブを開いたまま）で文字起こし・議事録生成まで
-            //   完走させていた。
-            //
-            //   これを、音声の確定保存（finalizeAudioAndGetResult）
-            //   のみ実行して即座に案内を出す方式に変更した。
+            // 🌟 音声の確定保存（finalizeAudioAndGetResult）のみ実行して即座に案内を出す。
             //   文字起こし・議事録生成は、GAS側の時間主導型トリガー
-            //   （processQueueTrigger）がバックグラウンドで自動的に
-            //   検出・処理する。これにより、ユーザーは録音を止めたら
-            //   即座にアプリを閉じてよく、数分後にドライブの
-            //   「レコーダー/議事録等」フォルダを確認すれば結果が
+            //   （processQueueTrigger）がバックグラウンドで自動的に検出・処理する。
+            //   ユーザーは録音を止めたら即座にアプリを閉じてよく、数分後に
+            //   ドライブの「レコーダー/議事録等」フォルダを確認すれば結果が
             //   置かれている、という体験になる。
             UI.statusText.innerHTML = "🔊 音声データを確定保存しています...";
             UI.progressContainer.style.display = "block";
@@ -1751,49 +1543,37 @@
                 return;
             }
 
+            // 🌟【2026-10-19追加】サーバー側にセッションフォルダが見つからなかった場合
+            //   （Drive保存がすべて失敗した場合など）は、確定済みとして扱わない。
+            if (audioResult && audioResult.audioFinalized === false) {
+                UI.progressTitle.innerHTML = "⚠️ 保存された音声が見つかりません";
+                UI.statusText.innerHTML = "エラー発生";
+                UI.statusText.style.color = "#fa5252";
+                alert(
+                    "サーバー側に保存された音声データが見つかりませんでした。\n" +
+                    "通信環境をご確認のうえ、もう一度録音をお試しください。"
+                );
+                return;
+            }
+
             UI.progressTitle.innerHTML = "✅ 音声データの確認が完了しました";
             UI.statusText.innerHTML = "タップして新しい録音を開始";
             UI.statusText.style.color = "#868e96";
             UI.mainRecordBtn.style.display = "flex";
 
+            // 🌟 Drive保存の失敗は、ここで警告する（その区間は文字起こしに含まれない）。
             if (window.appController.audioAppendFailures && window.appController.audioAppendFailures.length > 0) {
-                alert("⚠️ 録音中に音声の一部保存でエラーが発生した可能性があります。音声データをご確認ください。");
-            }
-
-            const missingChunks = window.appController.detectMissingChunks();
-            if (missingChunks.length > 0) {
+                const failedIndexes = window.appController.audioAppendFailures
+                    .map(f => f.chunkIndex + 1)
+                    .sort((a, b) => a - b);
                 alert(
-                    "⚠️ 録音中に一部区間のAIアップロードが失敗していたため、その区間の内容は" +
-                    "文字起こし・議事録に反映されない可能性があります。（該当区間: セグメント " +
-                    missingChunks.join(", ") + "）\n" +
-                    "該当区間の音声原本はドライブに保存されていますので、必要に応じてご確認ください。"
+                    "⚠️ 録音中に、一部の音声（" + failedIndexes.join(", ") + "番目の区間）の保存に失敗しました。\n" +
+                    "その区間は文字起こし・議事録に反映されません。"
                 );
             }
 
-            // 🌟【バックグラウンド処理対応・不具合修正】：
-            //   バックグラウンド処理（processQueueTrigger）は、ドライブに
-            //   保存された音声ファイルを独自に再アップロードして処理する
-            //   ため、フロント側が録音中に保持していた geminiFileUris
-            //   （localStorageに永続化された、Geminiへのアップロード
-            //   済みfileUriの一覧）にはもう依存しない。
-            //
-            //   従来、録音停止後にフロントが文字起こしまで完走させて
-            //   いた頃は、finalizeSession() の中で clearState() が
-            //   呼ばれ、この状態が確実にクリアされていた。しかし
-            //   バックグラウンド方式に移行し、finalizeAudioAndGetResult
-            //   のみを呼ぶよう変更した際、clearState() を呼ぶ箇所が
-            //   なくなってしまっていた。
-            //
-            //   このため、古い（既にバックグラウンド処理で使用・削除
-            //   済みの可能性がある）fileUriが localStorage に残り
-            //   続け、後から「手動再開」を行った際にその古いfileUriを
-            //   再利用しようとして「File ... permission」エラーに
-            //   なる不具合が発生していた。
-            //
-            //   音声の確定保存が成功した時点で、フロント側はもう
-            //   この録音の処理に関与しないため、ここで明示的に
-            //   clearState() を呼び、次回の録音に備えて状態を
-            //   クリーンな状態に戻す。
+            // 🌟 音声の確定保存が成功した時点で、フロント側はもうこの録音の
+            //   処理に関与しないため、状態をクリアして次回の録音に備える。
             window.appController.clearState();
 
             alert(
@@ -1873,18 +1653,6 @@
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(blob);
-        });
-    }
-
-    function updateProgressUI(chunks) {
-        chunks.forEach(chunk => {
-            const dot = document.getElementById(`dot-${chunk.id}`);
-            if (dot) {
-                dot.className = 'dot';
-                if (chunk.status === 'processing') dot.classList.add('processing');
-                else if (chunk.status === 'completed') dot.classList.add('complete');
-                else if (chunk.status === 'error') dot.classList.add('error');
-            }
         });
     }
 
