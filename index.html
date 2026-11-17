@@ -385,6 +385,39 @@
             flex-shrink: 0;
         }
 
+        /* 💻 PC限定：Web会議同時録音トグル */
+        .web-meeting-toggle {
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            margin-bottom: 0 !important;
+            font-size: 12px !important;
+            color: var(--text-primary) !important;
+            transition: all 0.2s ease;
+        }
+        .web-meeting-toggle:hover {
+            border-color: var(--accent-amber);
+            background: #ffffff;
+        }
+        .web-meeting-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-copper);
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        body.recording-active .web-meeting-toggle {
+            background: rgba(22, 24, 30, 0.85);
+            border-color: rgba(255, 255, 255, 0.09);
+            color: #d8dce3 !important;
+        }
+
         input[type="text"], select {
             width: 100%;
             padding: 12.5px 14px;
@@ -1182,6 +1215,14 @@
                 <option value="苦情・要望等受付">苦情・要望等受付</option>
             </select>
         </div>
+
+        <!-- 💻 PC限定：Web会議の相手音声＋自分のマイクを同時録音するオプション -->
+        <div class="input-group" id="webMeetingGroup" style="display: none;">
+            <label class="web-meeting-toggle" for="webMeetingCheckbox">
+                <input type="checkbox" id="webMeetingCheckbox">
+                <span>Web会議の音声も一緒に録音する（Zoom / Meet用）</span>
+            </label>
+        </div>
     </div>
 
     <!-- メイン録音エリア（オーディオ・コア） -->
@@ -1275,6 +1316,13 @@
             </svg>
             システム設定
         </h4>
+        <!-- 💻 PCでマイクが複数接続されている場合のみ自動表示 -->
+        <div class="input-group" id="micSelectGroup" style="display: none; margin-bottom: 14px;">
+            <label style="font-size: 12px;">使用するマイク（PC接続時）</label>
+            <select id="micSelect">
+                <option value="">既定のマイク（自動）</option>
+            </select>
+        </div>
         <div class="input-group" style="margin-bottom: 0;">
             <label style="font-size: 12px;">GAS ウェブアプリURL</label>
             <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
@@ -1307,34 +1355,6 @@
 
 <script>
     // ==========================================
-    // 🛠 修正内容（2026-11-17・録音の堅牢化：端末やブラウザの設定に依存しにくくする）
-    //
-    // 背景：
-    //   スマートフォンでは、他アプリの表示中や画面ロック中に、OSがマイクを止める
-    //   （または無音にする）ことがある。これはページ側のコードでは防げない。
-    //   従来は、止まっても画面が「録音中」のままで、戻っても録音が再開されなかった。
-    //
-    // 方針：「止めない」ことは保証できないため、次の3点を徹底する。
-    //   1) 止まったことを必ず検知する
-    //      ・マイクトラックの終了（ended）／ミュート（mute）
-    //      ・録音データが届かない状態（10秒以上）
-    //      ・マイク入力が完全な無音（デジタルゼロ）のまま続く状態（20秒以上）
-    //      ・録音エンジン（MediaRecorder）が動いていない状態
-    //   2) この画面に戻った時点で、マイクを取り直して自動で録音を再開する
-    //      途切れた時間帯は記録し、画面・停止時の案内・診断情報に表示する。
-    //   3) 録音データを失わない
-    //      ・1秒ごとの音声を端末内（IndexedDB）に保存する。
-    //      ・ブラウザが落ちた／タブが破棄された場合も、次に開いたときに
-    //        未送信分を自動でドライブへ送り、録音を確定する。
-    //
-    // あわせて：
-    //   ・区間の区切りを setTimeout ではなく時刻の比較で行う（バックグラウンドでの
-    //     タイマー遅延の影響を受けない）。
-    //   ・iPhoneでSafari以外（Chrome等・ホーム画面のアイコン）から開いた場合は、
-    //     バックグラウンドでマイクが止まりやすいため、注意を表示する。
-    // ==========================================
-
-    // ==========================================
     // 🎨 カスタムSVGアイコン定義（脱・絵文字）
     // ==========================================
     const SVG_ICONS = {
@@ -1353,7 +1373,12 @@
     // 🔧 設定と状態管理
     // ==========================================
     const APP_CONFIG = {
+        SEGMENT_SOFT_INTERVAL_MS: 285000, // 4分45秒以降、会話の切れ目（無音）を探して区切る
         SEGMENT_INTERVAL_MS: 300000,      // 5分ごとに区切って保存
+        SEGMENT_HARD_INTERVAL_MS: 330000, // 最長5分30秒で必ず区切る（無音がなくても分割）
+        SPLIT_SILENCE_MS: 800,            // 0.8秒以上の無音を会話の切れ目とみなす
+        LOW_VOLUME_GUIDE_MS: 30000,       // 小音量が30秒続いたら画面に控えめに案内を出す
+        AUDIO_BITS_PER_SECOND: 64000,     // 音声向けビットレート（64kbps）
         // 画面が裏にある間は区切りを保留するが、この倍率を超えたら裏でも区切る
         // （1ファイルが大きくなりすぎるのを防ぐ。3倍＝最長15分）
         HIDDEN_ROTATION_FACTOR: 3,
@@ -1373,7 +1398,7 @@
         isRecording: false,
         isStopping: false,
         recorder: null,
-        currentSegment: null,          // 録音中の区間 { index, sessionId, mimeType, parts, partSeq, finalized, startedAt }
+        currentSegment: null,           // 録音中の区間 { index, sessionId, mimeType, parts, partSeq, finalized, startedAt }
         globalStream: null,
         chunkIndex: 0,
         mimeType: 'audio/webm',
@@ -1386,33 +1411,44 @@
         isPseudoSleeping: false,
         audioSendQueue: Promise.resolve(),
         isSegmentCycleActive: false,
-        suppressAutoRestart: false,    // マイク取り直し中は、録音停止後の自動再開を止める
+        suppressAutoRestart: false,     // マイク取り直し中は、録音停止後の自動再開を止める
         // 🌟 通信失敗したチャンクを保持し、画面復帰時・終了時に自動再送するキュー
         pendingRetrySegments: [],
         // 🌟 マイクの健全性の監視
-        lastDataAt: 0,                 // 最後に録音データが届いた時刻
-        micLostAtMs: 0,                // マイク停止を検知した時刻（0なら正常）
+        lastDataAt: 0,                  // 最後に録音データが届いた時刻
+        micLostAtMs: 0,                 // マイク停止を検知した時刻（0なら正常）
         micLostReason: "",
-        micGaps: [],                   // 途切れた時間帯 [{ fromSec, toSec, reason }]
+        micGaps: [],                    // 途切れた時間帯 [{ fromSec, toSec, reason }]
         isRecoveringMic: false,
         lastRecoverAttemptAt: 0,
         silentSinceMs: 0,
         lastSilentRecoverAt: 0,
         silenceBuffer: null,
         isLeftoverRecovering: false,
-        // 🌟 Web Audio API（リアルタイム波形解析＆無音検知用。録音データ自体には使わない）
+        // 🌟 Web Audio API（リアルタイム波形解析＆無音検知用。通常録音のデータ自体には使わない）
         audioContext: null,
         rawMicStream: null,
         audioProcessingNodes: null,
         analyserNode: null,
         silenceAnalyserNode: null,
-        visualizerRafId: null
+        visualizerRafId: null,
+        // 🌟 スマート区間分割＆小声ガイド用の音量状態
+        currentVolumeLevel: 0,
+        splitQuietSinceMs: 0,
+        lowVolumeSinceMs: 0,
+        isLowVolume: false,
+        // 💻 PC Web会議モード（相手音声＋マイク合成）用
+        isWebMeetingMode: false,
+        displayStream: null,
+        mixAudioContext: null
     };
 
     const UI = {
         meetingNameInput: document.getElementById('meetingNameInput'),
         meetingNameMicBtn: document.getElementById('meetingNameMicBtn'),
         templateSelect: document.getElementById('templateSelect'),
+        webMeetingGroup: document.getElementById('webMeetingGroup'),
+        webMeetingCheckbox: document.getElementById('webMeetingCheckbox'),
         mainRecordBtn: document.getElementById('mainRecordBtn'),
         statusText: document.getElementById('statusText'),
         elapsedTime: document.getElementById('elapsedTime'),
@@ -1429,6 +1465,8 @@
         recoveryActionBtn: document.getElementById('recoveryActionBtn'),
         settingsBtn: document.getElementById('settingsBtn'),
         settingsPanel: document.getElementById('settingsPanel'),
+        micSelectGroup: document.getElementById('micSelectGroup'),
+        micSelect: document.getElementById('micSelect'),
         gasUrlInput: document.getElementById('gasUrlInput'),
         saveSettingsBtn: document.getElementById('saveSettingsBtn'),
         showDiagnosticsBtn: document.getElementById('showDiagnosticsBtn'),
@@ -1454,14 +1492,16 @@
         "start-failed": "録音を開始できなかった"
     };
 
+    // 💻 PCブラウザ判定（スマホ・タブレットではPC向けオプションを非表示にする）
+    function isDesktopBrowser() {
+        const ua = navigator.userAgent || "";
+        const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(ua) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        return !isMobile;
+    }
+
     // ==========================================
     // 💾 端末内の一時保存（IndexedDB）
-    //
-    //   録音データを1秒ごとに端末内へ保存する。ドライブへの保存に成功した
-    //   区間は、その時点で端末内から削除する。ブラウザが落ちた場合などは
-    //   端末内に残るので、次回起動時に未送信分として自動で送る。
-    //   IndexedDBが使えない環境（一部のプライベートブラウズ等）では、
-    //   何もせずに従来どおりメモリのみで動作する。
     // ==========================================
     const SegmentStore = {
         DB_NAME: "rakuraku_gijiroku_recorder",
@@ -1510,7 +1550,6 @@
             return IDBKeyRange.bound(prefix, prefix + "\uffff");
         },
 
-        // トランザクションを1つ実行する共通処理。失敗しても例外は投げず null を返す。
         _run: async function(storeNames, mode, work) {
             const db = await this.open();
             if (!db) return null;
@@ -1590,18 +1629,6 @@
 
     // ==========================================
     // 🛡️ バックグラウンドで止められにくくする工夫（KeepAlive）
-    //
-    //   OSやブラウザは、「何もしていない」と判断した裏のページを優先的に休止する。
-    //   そこで、録音中は次の2つを行い、休止の対象になりにくくする。
-    //   どちらも「止まりにくくする」ための工夫であり、保証ではない。
-    //   使えない端末では何もせず、従来どおり動作する。
-    //
-    //   1) 無音の音声を再生し続ける
-    //      「音声を再生中のページ」として扱われ、通知欄に再生中の表示が出る。
-    //   2) 小窓（ピクチャー・イン・ピクチャー）
-    //      他のアプリを見る前にボタンを押すと、この画面が小さな窓として
-    //      他のアプリの上に残る。ブラウザが「表示中」の扱いになるため、
-    //      マイクを止められにくい。小窓には経過時間とマイクの状態を表示する。
     // ==========================================
     const KeepAlive = {
         audioEl: null,
@@ -1609,7 +1636,6 @@
         pipCanvas: null,
         pipReady: false,
 
-        // 無音のWAV（8kHz・8bit・モノラル）を作る
         _buildSilentWavUrl: function(seconds) {
             const sampleRate = 8000;
             const numSamples = sampleRate * seconds;
@@ -1635,7 +1661,6 @@
             return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
         },
 
-        // 利用者の操作（録音ボタンのタップ）の直後に呼ぶこと
         startSilentAudio: function() {
             if (!APP_CONFIG.KEEPALIVE_SILENT_AUDIO) return;
             try {
@@ -1661,7 +1686,6 @@
                                 artist: "らくらく議事録"
                             });
                         }
-                        // 通知欄やロック画面の一時停止ボタンで止められないようにする
                         const keepPlaying = () => { this.ensureAudioPlaying(); };
                         ["play", "pause", "stop"].forEach((action) => {
                             try { navigator.mediaSession.setActionHandler(action, keepPlaying); } catch (e) { /* 未対応 */ }
@@ -1674,7 +1698,6 @@
             }
         },
 
-        // 再生が止められていたら再開する（定期点検・タップ時に呼ぶ）
         ensureAudioPlaying: function() {
             if (!this.audioEl || !AppState.isRecording) return;
             if (this.audioEl.paused) {
@@ -1715,7 +1738,6 @@
             return !!(UI.pipVideo && UI.pipVideo.webkitPresentationMode === "picture-in-picture");
         },
 
-        // 小窓に表示する絵（経過時間とマイクの状態）を描く
         drawPip: function() {
             if (!this.pipCanvas) return;
             const canvas = this.pipCanvas;
@@ -1783,14 +1805,12 @@
             } catch (e) { /* 無視 */ }
         },
 
-        // 録音開始後に呼ぶ
         showPipButton: function() {
             if (UI.pipBtn && this.pipSupported()) {
                 UI.pipBtn.style.display = "inline-block";
             }
         },
 
-        // 録音の停止時・開始失敗時に呼ぶ
         stop: function() {
             this.stopSilentAudio();
             this.exitPip();
@@ -1825,9 +1845,7 @@
     }
 
     // ==========================================
-    // ⚠️ 利用環境の確認
-    //   iPhone / iPad では、Safari以外のブラウザ（Chrome等）や、ホーム画面に
-    //   追加したアイコンから開くと、他アプリ表示中にマイクが止まりやすい。
+    // ⚠️ 利用環境の確認 ＆ PC向けUIの初期化
     // ==========================================
     function showEnvironmentWarningIfNeeded() {
         if (!UI.envWarning) return;
@@ -1850,6 +1868,61 @@
         }
     }
 
+    // 💻 PCブラウザの場合のみ、Web会議モード選択とマイク選択（複数時）を有効化する
+    async function initDesktopOptions() {
+        if (!isDesktopBrowser()) return;
+
+        if (UI.webMeetingGroup) {
+            UI.webMeetingGroup.style.display = "block";
+        }
+        await refreshMicDeviceList();
+
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.addEventListener === "function") {
+            navigator.mediaDevices.addEventListener("devicechange", () => {
+                refreshMicDeviceList();
+            });
+        }
+    }
+
+    async function refreshMicDeviceList() {
+        if (!isDesktopBrowser() || !UI.micSelectGroup || !UI.micSelect) return;
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.enumerateDevices !== "function") return;
+
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const mics = devices.filter(d => d.kind === "audioinput");
+
+            // マイクが1台以下なら選択不要のため非表示のままにする
+            if (mics.length <= 1) {
+                UI.micSelectGroup.style.display = "none";
+                return;
+            }
+
+            const savedId = localStorage.getItem("saved_mic_device_id") || "";
+            UI.micSelect.innerHTML = '<option value="">既定のマイク（自動）</option>';
+
+            let hasSavedDevice = false;
+            mics.forEach((mic, idx) => {
+                const opt = document.createElement("option");
+                opt.value = mic.deviceId;
+                opt.textContent = mic.label || `マイク ${idx + 1}`;
+                if (mic.deviceId === savedId) {
+                    opt.selected = true;
+                    hasSavedDevice = true;
+                }
+                UI.micSelect.appendChild(opt);
+            });
+
+            if (savedId && !hasSavedDevice) {
+                localStorage.removeItem("saved_mic_device_id");
+            }
+
+            UI.micSelectGroup.style.display = "block";
+        } catch (e) {
+            console.warn("⚠️ マイク一覧の取得をスキップしました:", e);
+        }
+    }
+
     // ==========================================
     // 💡 イベントの紐付け
     // ==========================================
@@ -1863,7 +1936,6 @@
             recognition.continuous = false;
 
             UI.meetingNameMicBtn.addEventListener('click', () => {
-                // 録音中に音声入力を使うとマイクの取り合いになるため、録音中は使わない
                 if (AppState.isRecording || AppState.isStopping) {
                     alert("録音中は、会議名の音声入力は使えません（キーボードで入力してください）。");
                     return;
@@ -1958,8 +2030,20 @@
         UI.settingsBtn.addEventListener('click', () => {
             togglePanel(UI.settingsPanel, UI.settingsBtn, () => {
                 UI.gasUrlInput.value = window.appController ? window.appController.gasUrl : "";
+                refreshMicDeviceList();
             });
         });
+
+        if (UI.micSelect) {
+            UI.micSelect.addEventListener('change', () => {
+                const val = UI.micSelect.value;
+                if (val) {
+                    localStorage.setItem("saved_mic_device_id", val);
+                } else {
+                    localStorage.removeItem("saved_mic_device_id");
+                }
+            });
+        }
 
         UI.saveSettingsBtn.addEventListener('click', () => {
             const url = UI.gasUrlInput.value.trim();
@@ -1969,7 +2053,6 @@
                 alert("設定を保存しました！");
                 UI.settingsPanel.style.display = 'none';
                 UI.settingsBtn.classList.remove('active-panel');
-                // URLが設定されたので、端末内に未送信の録音が残っていれば送る
                 recoverLeftoverSegments();
             } else {
                 alert("URLを入力してください。");
@@ -2013,7 +2096,6 @@
             UI.pipBtn.addEventListener('click', () => { KeepAlive.togglePip(); });
         }
 
-        // 通信が復帰したら、未送信分の再送を試みる
         window.addEventListener('online', () => {
             if (AppState.isRecording) {
                 retryPendingSegments();
@@ -2109,11 +2191,6 @@
 
     // ==========================================
     // 💾 端末内に残った未送信の録音を、ドライブへ送る
-    //
-    //   ブラウザが落ちた／タブが破棄された／通信できないまま閉じた、などで
-    //   端末内に残った音声を、次回起動時・通信復帰時・録音完了後に送る。
-    //   現在録音中のセッションの分は対象外（録音側の処理が担当する）。
-    //   controller の状態（進行中の録音）には触れないよう、GASを直接呼ぶ。
     // ==========================================
     async function recoverLeftoverSegments() {
         if (AppState.isLeftoverRecovering) return;
@@ -2148,7 +2225,6 @@
                 for (let i = 0; i < list.length; i++) {
                     const meta = list[i];
 
-                    // 途中で同じセッションの録音が始まることはないが、念のため確認する
                     if ((AppState.isRecording || AppState.isStopping) &&
                         window.appController.state.sessionId === sessionId) {
                         allSent = false;
@@ -2183,7 +2259,6 @@
 
                 if (!allSent || sentCount === 0) continue;
 
-                // すべて送れたら録音を確定し、バックグラウンド処理の対象にする
                 try {
                     await window.appController.callGasApi({
                         action: "finalizeAudio",
@@ -2192,7 +2267,6 @@
                         mimeType: lastMeta.mimeType || "audio/webm"
                     });
 
-                    // 画面側に同じセッションの状態が残っていれば、片付ける
                     if (!AppState.isRecording && !AppState.isStopping &&
                         window.appController.state.sessionId === sessionId) {
                         window.appController.clearState();
@@ -2262,12 +2336,10 @@
         hideWakeLockWarning();
     }
 
-    // 🌟 他アプリ・画面ロックからの復帰処理
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState !== 'visible') return;
         if (!AppState.isRecording && !AppState.isStopping) return;
 
-        // 1) AudioContext が一時停止（suspended / interrupted）していたら再開
         if (AppState.audioContext && AppState.audioContext.state !== 'running') {
             try {
                 await AppState.audioContext.resume();
@@ -2276,15 +2348,16 @@
                 console.warn("⚠️ AudioContext resume失敗:", e);
             }
         }
+        if (AppState.mixAudioContext && AppState.mixAudioContext.state !== 'running') {
+            AppState.mixAudioContext.resume().catch(() => {});
+        }
 
-        // 2) Wake Lock の再取得
         if (!AppState.wakeLock) {
             console.log("🔆 画面が再アクティブ化されました。Wake Lockの再取得を試みます。");
             await requestWakeLock();
         }
 
         if (AppState.isRecording) {
-            // 3) マイクが止まっていたら、すぐに取り直す（待ち時間の制限を解除して即時に試す）
             const track = currentMicTrack();
             const trackBad = !track || track.readyState !== 'live' || track.muted;
             if (AppState.micLostAtMs || trackBad) {
@@ -2292,11 +2365,9 @@
                 recoverMicrophone(AppState.micLostReason || (track && track.muted ? 'muted' : 'ended'));
             }
 
-            // 4) 区間の区切り・その他の点検をすぐに実行
             healthTick();
         }
 
-        // 5) 通信失敗していたセグメントがあれば自動再送
         retryPendingSegments();
     });
 
@@ -2330,7 +2401,6 @@
 
     function enterPseudoSleep() {
         if (!AppState.isRecording) return;
-        // マイクが止まっている間は、警告が見えるよう暗転しない
         if (AppState.micLostAtMs) return;
         AppState.isPseudoSleeping = true;
         updateSleepOverlayElapsedText();
@@ -2357,8 +2427,6 @@
         UI.sleepOverlayElapsed.textContent = formatElapsed(sec);
     }
 
-    // 🌟 ユーザー操作（タップ等）のタイミングで、AudioContext の再開と、
-    //   マイクが止まっていた場合の取り直しを行う
     ['click', 'touchstart', 'keydown'].forEach(eventName => {
         document.addEventListener(eventName, () => {
             if (AppState.isRecording) {
@@ -2366,9 +2434,11 @@
                 if (AppState.audioContext && AppState.audioContext.state !== 'running') {
                     AppState.audioContext.resume().catch(() => {});
                 }
+                if (AppState.mixAudioContext && AppState.mixAudioContext.state !== 'running') {
+                    AppState.mixAudioContext.resume().catch(() => {});
+                }
                 KeepAlive.ensureAudioPlaying();
                 if (AppState.micLostAtMs && !AppState.isRecoveringMic) {
-                    // 利用者の操作なので、待ち時間の制限を解除してすぐに取り直す
                     AppState.lastRecoverAttemptAt = 0;
                     recoverMicrophone(AppState.micLostReason || 'ended');
                 }
@@ -2378,11 +2448,6 @@
 
     // ==========================================
     // 🎚️ リアルタイム音声スペクトラム＆オーディオ・コア演出／無音検知
-    //
-    // 🛠 重要設計：
-    //   MediaRecorder には、OSレベルのノイズ抑制・オートゲインが効いた
-    //   「生のマイクストリーム」を直接渡す。Web Audio API は、音量の可視化と
-    //   無音検知のためだけに並列で動かす（止まっても録音データには影響しない）。
     // ==========================================
     function buildAudioProcessingChain(rawStream) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -2409,7 +2474,6 @@
         analyser.fftSize = 64;
         analyser.smoothingTimeConstant = 0.78;
 
-        // 無音検知用：フィルタを通さない生の入力を見る
         const silenceAnalyser = audioContext.createAnalyser();
         silenceAnalyser.fftSize = 256;
 
@@ -2426,7 +2490,6 @@
         };
     }
 
-    // 🌟 波形表示・無音検知用のチェーンを構築する（失敗しても録音には影響しない）
     async function setupAnalyserChain(stream) {
         try {
             const chain = buildAudioProcessingChain(stream);
@@ -2463,10 +2526,9 @@
 
         const renderFrame = () => {
             if (!AppState.isRecording) return;
-            if (AppState.analyserNode !== analyser) return; // マイク取り直し後は新しい描画ループに任せる
+            if (AppState.analyserNode !== analyser) return;
             AppState.visualizerRafId = requestAnimationFrame(renderFrame);
 
-            // 疑似スリープ中や裏画面では描画計算をスキップして省電力化
             if (AppState.isPseudoSleeping || document.visibilityState === 'hidden') {
                 return;
             }
@@ -2482,6 +2544,8 @@
             }
 
             const avgLevel = sum / (bars.length * 255); // 0.0 〜 1.0
+            AppState.currentVolumeLevel = avgLevel;
+
             if (UI.voiceRingInner && UI.voiceRingOuter) {
                 const innerScale = 1 + avgLevel * 0.28;
                 const outerScale = 1 + avgLevel * 0.42;
@@ -2498,6 +2562,7 @@
             cancelAnimationFrame(AppState.visualizerRafId);
             AppState.visualizerRafId = null;
         }
+        AppState.currentVolumeLevel = 0;
         if (UI.audioVisualizer) {
             const bars = UI.audioVisualizer.querySelectorAll('.vis-bar');
             bars.forEach(bar => { bar.style.height = '5px'; });
@@ -2524,18 +2589,127 @@
     }
 
     // ==========================================
-    // 🎙️ マイクの取得・監視・自動復旧
+    // 🎙️ マイクの取得・監視・自動復旧 ＆ 💻 PC Web会議音声合成
     // ==========================================
-    const MIC_CONSTRAINTS = {
-        audio: {
+    function buildMicConstraints(deviceId) {
+        const audio = {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true
+            autoGainControl: true,
+            channelCount: { ideal: 1 } // モノラル固定（音声の明瞭化・軽量化）
+        };
+        if (deviceId) {
+            audio.deviceId = { exact: deviceId };
         }
-    };
+        return { audio: audio };
+    }
+
+    // 選択されたマイク（Bluetoothイヤホン等）が切断・未接続の場合は、自動で既定マイクへ切り替える
+    async function acquireMicStream(timeoutMs) {
+        const savedDeviceId = isDesktopBrowser()
+            ? (localStorage.getItem("saved_mic_device_id") || "")
+            : "";
+
+        const tryGet = (constraints) => {
+            if (!timeoutMs) {
+                return navigator.mediaDevices.getUserMedia(constraints);
+            }
+            return new Promise((resolve, reject) => {
+                let settled = false;
+                const timer = setTimeout(() => {
+                    if (settled) return;
+                    settled = true;
+                    reject(new Error("マイクの再取得がタイムアウトしました"));
+                }, timeoutMs);
+
+                navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+                    if (settled) {
+                        stream.getTracks().forEach(track => track.stop());
+                        return;
+                    }
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve(stream);
+                }).catch((err) => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    reject(err);
+                });
+            });
+        };
+
+        if (savedDeviceId) {
+            try {
+                return await tryGet(buildMicConstraints(savedDeviceId));
+            } catch (err) {
+                console.warn("⚠️ 指定されたマイク（Bluetooth等）が利用できないため、既定のマイクへ自動切替します:", err);
+                localStorage.removeItem("saved_mic_device_id");
+                if (UI.micSelect) UI.micSelect.value = "";
+                logDiag("マイク自動切替（フォールバック）", [
+                    "指定されていた外部マイクが接続されていないため、既定のマイクへ切り替えました。"
+                ]);
+            }
+        }
+
+        return await tryGet(buildMicConstraints(null));
+    }
+
+    // 💻 Web会議モード：自分のマイク音声とPCの共有音声を合成する（サンプリングレート差も自動調整）
+    async function buildWebMeetingMixedStream(micStream, displayStream) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            return micStream;
+        }
+
+        const mixCtx = new AudioContextClass();
+        if (mixCtx.state !== 'running') {
+            await mixCtx.resume().catch(() => {});
+        }
+        AppState.mixAudioContext = mixCtx;
+
+        const destination = mixCtx.createMediaStreamDestination();
+        // モノラル出力に統合
+        destination.channelCount = 1;
+
+        const micSource = mixCtx.createMediaStreamSource(micStream);
+        const micGain = mixCtx.createGain();
+        micGain.gain.value = 1.0;
+        micSource.connect(micGain);
+        micGain.connect(destination);
+
+        if (displayStream && displayStream.getAudioTracks().length > 0) {
+            const sysSource = mixCtx.createMediaStreamSource(displayStream);
+            const sysGain = mixCtx.createGain();
+            sysGain.gain.value = 1.0;
+            sysSource.connect(sysGain);
+            sysGain.connect(destination);
+
+            const sysTrack = displayStream.getAudioTracks()[0];
+            sysTrack.addEventListener('ended', () => {
+                console.warn("⚠️ 画面共有が終了しました。自分のマイク音声のみで録音を継続します。");
+                logDiag("Web会議の画面共有が終了", [
+                    "共有が停止されたため、自分のマイク音声のみで録音を継続しています。"
+                ]);
+            });
+        }
+
+        return destination.stream;
+    }
+
+    function teardownWebMeetingStreams() {
+        if (AppState.displayStream) {
+            AppState.displayStream.getTracks().forEach(track => { try { track.stop(); } catch (e) { /* 無視 */ } });
+            AppState.displayStream = null;
+        }
+        if (AppState.mixAudioContext) {
+            try { AppState.mixAudioContext.close(); } catch (e) { /* 無視 */ }
+            AppState.mixAudioContext = null;
+        }
+    }
 
     function currentMicTrack() {
-        const stream = AppState.globalStream;
+        const stream = AppState.rawMicStream || AppState.globalStream;
         if (!stream) return null;
         const tracks = stream.getAudioTracks();
         return tracks.length > 0 ? tracks[0] : null;
@@ -2557,35 +2731,6 @@
         AppState.rawMicStream = null;
     }
 
-    // マイクの取り直し用：裏画面などで応答が返らない場合に備えて、待ち時間に上限を設ける
-    function requestMicStreamWithTimeout(timeoutMs) {
-        return new Promise((resolve, reject) => {
-            let settled = false;
-            const timer = setTimeout(() => {
-                if (settled) return;
-                settled = true;
-                reject(new Error("マイクの再取得がタイムアウトしました"));
-            }, timeoutMs);
-
-            navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS).then((stream) => {
-                if (settled) {
-                    // タイムアウト後に届いたストリームは使わないので、すぐに解放する
-                    stream.getTracks().forEach(track => track.stop());
-                    return;
-                }
-                settled = true;
-                clearTimeout(timer);
-                resolve(stream);
-            }).catch((err) => {
-                if (settled) return;
-                settled = true;
-                clearTimeout(timer);
-                reject(err);
-            });
-        });
-    }
-
-    // マイクトラックの終了・ミュートを監視する
     function attachTrackWatchers(stream) {
         const track = stream.getAudioTracks()[0];
         if (!track) return;
@@ -2632,7 +2777,6 @@
             `画面の状態: ${document.visibilityState}`
         ]);
 
-        // 警告が見えるよう、暗転表示は解除する
         if (AppState.isPseudoSleeping) wakePseudoSleep();
         updateRecordingStatusUI();
 
@@ -2653,7 +2797,6 @@
         AppState.micLostAtMs = 0;
         AppState.micLostReason = "";
 
-        // 1秒未満の途切れは記録しない
         if (gap.toSec - gap.fromSec >= 1) {
             AppState.micGaps.push(gap);
             logDiag("マイク復旧（録音を再開）", [
@@ -2674,21 +2817,24 @@
             UI.statusText.innerHTML = "⚠️ マイクが停止中 — 画面をタップすると再開します";
             UI.statusText.style.color = "#ff7b6b";
             if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "MIC LOST";
+        } else if (AppState.isLowVolume) {
+            UI.statusText.classList.remove('mic-lost');
+            UI.statusText.innerHTML = "音声が小さめです（端末に近づけると精度が上がります）";
+            UI.statusText.style.color = "#f0ad68";
+            if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "LIVE REC";
         } else {
             UI.statusText.classList.remove('mic-lost');
             const gapNote = AppState.micGaps.length > 0
                 ? `（途切れ ${AppState.micGaps.length}回）`
                 : "";
-            UI.statusText.innerHTML = "録音中 — タップして終了" + gapNote;
+            const webNote = AppState.isWebMeetingMode ? " [Web会議]" : "";
+            UI.statusText.innerHTML = "録音中" + webNote + " — タップして終了" + gapNote;
             UI.statusText.style.color = "#ff7b6b";
             if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "LIVE REC";
         }
     }
 
-    // 🌟 マイクを取り直して、録音を再開する
-    //   ・止まった時点までの音声は、区間として確定して送る。
-    //   ・画面が裏にある間は、取り直しても無音になる可能性が高いため、
-    //     マイクが完全に切れた（ended）場合を除き、画面に戻るまで待つ。
+    // 🌟 マイクを取り直して、録音を再開する（Bluetooth切断時は自動で内蔵マイクへ切替）
     async function recoverMicrophone(reason) {
         if (!AppState.isRecording || AppState.isStopping) return;
 
@@ -2708,32 +2854,37 @@
         console.log(`🎙️ マイクの取り直しを開始します（理由: ${reason}）`);
 
         try {
-            // 1) 現在の録音を閉じ、溜まっている分を区間として確定する
             await waitForRecorderToStop();
             if (AppState.currentSegment) {
                 finalizeSegment(AppState.currentSegment);
             }
 
-            // 2) 古いマイク・波形表示を解放する
             stopMicTracks();
             teardownAudioProcessingChain();
+            if (AppState.mixAudioContext) {
+                try { AppState.mixAudioContext.close(); } catch (e) { /* 無視 */ }
+                AppState.mixAudioContext = null;
+            }
 
-            // 3) マイクを取り直す
-            const stream = await requestMicStreamWithTimeout(APP_CONFIG.MIC_REQUEST_TIMEOUT_MS);
+            const stream = await acquireMicStream(APP_CONFIG.MIC_REQUEST_TIMEOUT_MS);
 
             if (!AppState.isRecording || AppState.isStopping) {
-                // 取り直しの間に停止ボタンが押された場合は、使わずに解放する
                 stream.getTracks().forEach(track => track.stop());
                 return;
             }
 
             AppState.rawMicStream = stream;
-            AppState.globalStream = stream;
+            if (AppState.isWebMeetingMode && AppState.displayStream && AppState.displayStream.getAudioTracks().length > 0) {
+                const mixed = await buildWebMeetingMixedStream(stream, AppState.displayStream);
+                AppState.globalStream = mixed;
+                await setupAnalyserChain(mixed);
+            } else {
+                AppState.globalStream = stream;
+                await setupAnalyserChain(stream);
+            }
             attachTrackWatchers(stream);
-            await setupAnalyserChain(stream);
             startAudioVisualizer();
 
-            // 4) 新しい区間として録音を再開する
             AppState.suppressAutoRestart = false;
             startNewSegment();
 
@@ -2751,7 +2902,7 @@
     }
 
     // ==========================================
-    // 🩺 録音中の定期点検（1秒ごと。裏画面で間隔が延びても時刻の比較で動く）
+    // 🩺 録音中の定期点検（1秒ごと）
     // ==========================================
     function healthTick() {
         if (!AppState.isRecording || AppState.isStopping) return;
@@ -2759,10 +2910,8 @@
         const now = Date.now();
         const visible = document.visibilityState === 'visible';
 
-        // 0) 無音再生が止められていたら再開する
         KeepAlive.ensureAudioPlaying();
 
-        // 1) 画面スリープ防止が外れていたら取り直す
         if (visible && AppState.wakeLockSupported && !AppState.wakeLock &&
             now - AppState.lastWakeLockTryAt > 10000) {
             requestWakeLock();
@@ -2770,7 +2919,6 @@
 
         if (AppState.isRecoveringMic) return;
 
-        // 2) マイク・録音エンジンの状態を点検する
         const track = currentMicTrack();
         const recorderActive = !!(AppState.recorder && AppState.recorder.state === 'recording');
 
@@ -2797,24 +2945,58 @@
             return;
         }
 
-        // ミュート解除のイベントを取りこぼしていた場合の保険
         if (AppState.micLostAtMs && AppState.micLostReason === 'muted') {
             markMicRecovered();
         }
 
-        // 3) 完全な無音（デジタルゼロ）が続いていないか点検する
-        //    OSが裏画面のアプリに無音だけを渡す場合の検知。AudioContextが動いているときのみ判定する。
         checkDigitalSilence(now, visible);
 
-        // 4) 区間の区切り
+        // 🌟 小声ガイドの判定（可視状態かつマイク正常時のみ）
+        if (visible && !AppState.micLostAtMs && AppState.analyserNode) {
+            if (AppState.currentVolumeLevel < 0.025) {
+                if (!AppState.lowVolumeSinceMs) {
+                    AppState.lowVolumeSinceMs = now;
+                } else if (!AppState.isLowVolume && now - AppState.lowVolumeSinceMs >= APP_CONFIG.LOW_VOLUME_GUIDE_MS) {
+                    AppState.isLowVolume = true;
+                    updateRecordingStatusUI();
+                }
+            } else {
+                AppState.lowVolumeSinceMs = 0;
+                if (AppState.isLowVolume) {
+                    AppState.isLowVolume = false;
+                    updateRecordingStatusUI();
+                }
+            }
+        }
+
+        // 🌟 スマート区間分割：4分45秒〜5分30秒の間で会話の切れ目（0.8秒の無音）を探して区切る
         const seg = AppState.currentSegment;
         if (seg && !seg.finalized) {
             const age = now - seg.startedAt;
-            const mustRotate = age >= APP_CONFIG.SEGMENT_INTERVAL_MS * APP_CONFIG.HIDDEN_ROTATION_FACTOR;
-            if (age >= APP_CONFIG.SEGMENT_INTERVAL_MS && (visible || mustRotate)) {
+            const mustRotateHidden = age >= APP_CONFIG.SEGMENT_INTERVAL_MS * APP_CONFIG.HIDDEN_ROTATION_FACTOR;
+            const mustRotateHard = visible && age >= APP_CONFIG.SEGMENT_HARD_INTERVAL_MS;
+
+            let shouldSplitNow = false;
+            if (mustRotateHidden || mustRotateHard) {
+                shouldSplitNow = true;
+            } else if (visible && age >= APP_CONFIG.SEGMENT_SOFT_INTERVAL_MS) {
+                // 4分45秒以降：発話の切れ目（音量が小さい状態）を待つ
+                if (AppState.currentVolumeLevel < 0.04) {
+                    if (!AppState.splitQuietSinceMs) {
+                        AppState.splitQuietSinceMs = now;
+                    } else if (now - AppState.splitQuietSinceMs >= APP_CONFIG.SPLIT_SILENCE_MS) {
+                        shouldSplitNow = true;
+                    }
+                } else {
+                    AppState.splitQuietSinceMs = 0;
+                }
+            }
+
+            if (shouldSplitNow) {
+                AppState.splitQuietSinceMs = 0;
                 console.log(`✂️ 区間${seg.index + 1}を区切ります（${Math.round(age / 1000)}秒）。`);
                 try {
-                    AppState.recorder.stop(); // onstop で区間を確定し、次の区間を開始する
+                    AppState.recorder.stop();
                 } catch (e) {
                     console.warn("⚠️ 区間の区切りに失敗しました:", e);
                 }
@@ -2839,8 +3021,6 @@
 
         let isDigitalSilence = true;
         for (let i = 0; i < buffer.length; i++) {
-            // 実際のマイクは、静かな部屋でも必ずごく小さなノイズを拾う。
-            // 完全なゼロ（-120dB未満）が続くのは、OSがマイクを止めている場合。
             if (Math.abs(buffer[i]) > 0.000001) {
                 isDigitalSilence = false;
                 break;
@@ -2892,19 +3072,67 @@
     }
 
     async function startRecording() {
+        const wantWebMeeting = isDesktopBrowser() && UI.webMeetingCheckbox && UI.webMeetingCheckbox.checked;
+        let displayStream = null;
+
         try {
-            // 🌟 ボタンのタップ直後（利用者の操作として扱われる間）に、無音再生を開始する
             KeepAlive.startSilentAudio();
 
-            // 🌟 OS標準のハードウェア音声処理（エコー除去・ノイズ抑制・オートゲイン）を有効化
-            const stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
+            // 💻 Web会議モードがONの場合：先に画面/タブ共有ダイアログを表示する
+            if (wantWebMeeting) {
+                if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== "function") {
+                    alert("お使いのブラウザはWeb会議の音声共有に対応していません。通常のマイク録音を開始します。");
+                } else {
+                    try {
+                        displayStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: true,
+                            audio: true
+                        });
+                    } catch (dispErr) {
+                        // ユーザーが共有ダイアログをキャンセルした場合
+                        KeepAlive.stop();
+                        return;
+                    }
+
+                    // 共有ダイアログで「音声を共有」のチェックが外れていた場合の検知と確認
+                    if (displayStream.getAudioTracks().length === 0) {
+                        const proceedMicOnly = confirm(
+                            "⚠️ 共有画面の「音声を共有（システム音声またはタブの音声）」がオフになっているため、Web会議の相手の声が録音されません。\n\n" +
+                            "・「キャンセル」を押してやり直す（推奨）\n" +
+                            "・「OK」を押して自分のマイク音声のみで開始する"
+                        );
+                        displayStream.getTracks().forEach(t => t.stop());
+                        displayStream = null;
+                        if (!proceedMicOnly) {
+                            KeepAlive.stop();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // マイク取得（モノラル固定＋Bluetooth未接続時は既定マイクへ自動切替）
+            const stream = await acquireMicStream(null);
             AppState.rawMicStream = stream;
-            // 🌟 MediaRecorder には AudioContext の影響を受けない生のストリームを直接渡す
-            AppState.globalStream = stream;
             attachTrackWatchers(stream);
 
-            // 🌟 リアルタイム波形・無音検知用の AudioContext チェーンを構築
-            await setupAnalyserChain(stream);
+            // 初回権限付与後にマイクの機種名一覧を更新
+            refreshMicDeviceList();
+
+            if (displayStream && displayStream.getAudioTracks().length > 0) {
+                // Web会議モード：マイク音声＋PC共有音声を合成して録音
+                AppState.isWebMeetingMode = true;
+                AppState.displayStream = displayStream;
+                const mixedStream = await buildWebMeetingMixedStream(stream, displayStream);
+                AppState.globalStream = mixedStream;
+                await setupAnalyserChain(mixedStream);
+            } else {
+                // 通常録音：生のマイクストリームを直接渡す安全設計を維持
+                AppState.isWebMeetingMode = false;
+                AppState.displayStream = null;
+                AppState.globalStream = stream;
+                await setupAnalyserChain(stream);
+            }
 
             if (window.appController) window.appController.startNewSession();
 
@@ -2926,6 +3154,12 @@
             AppState.lastRecoverAttemptAt = 0;
             AppState.silentSinceMs = 0;
             AppState.lastSilentRecoverAt = 0;
+            AppState.splitQuietSinceMs = 0;
+            AppState.lowVolumeSinceMs = 0;
+            AppState.isLowVolume = false;
+
+            if (UI.webMeetingCheckbox) UI.webMeetingCheckbox.disabled = true;
+            if (UI.micSelect) UI.micSelect.disabled = true;
 
             UI.dotsGrid.innerHTML = '';
 
@@ -2942,8 +3176,11 @@
             startElapsedTimeDisplay();
             startAudioVisualizer();
 
+            // 音声向けコーデック（opus優先）の選択
             let mimeType = 'audio/webm';
-            if (MediaRecorder.isTypeSupported('audio/webm')) {
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                mimeType = 'audio/webm;codecs=opus';
+            } else if (MediaRecorder.isTypeSupported('audio/webm')) {
                 mimeType = 'audio/webm';
             } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
                 mimeType = 'audio/mp4';
@@ -2957,12 +3194,19 @@
             }
 
         } catch (err) {
+            if (displayStream) {
+                displayStream.getTracks().forEach(t => t.stop());
+            }
             AppState.isRecording = false;
             AppState.isSegmentCycleActive = false;
+            AppState.isWebMeetingMode = false;
+            if (UI.webMeetingCheckbox) UI.webMeetingCheckbox.disabled = false;
+            if (UI.micSelect) UI.micSelect.disabled = false;
             stopElapsedTimeDisplay();
             stopPseudoSleepCycle();
             releaseWakeLock();
             stopMicTracks();
+            teardownWebMeetingStreams();
             teardownAudioProcessingChain();
             KeepAlive.stop();
             document.body.classList.remove('recording-active');
@@ -2991,16 +3235,21 @@
         }
 
         const mimeType = AppState.mimeType;
-        const options = mimeType ? { mimeType: mimeType } : {};
         const sessionId = window.appController ? window.appController.state.sessionId : "unknown";
 
         let recorder;
         try {
+            const options = { audioBitsPerSecond: APP_CONFIG.AUDIO_BITS_PER_SECOND };
+            if (mimeType) options.mimeType = mimeType;
             recorder = new MediaRecorder(AppState.globalStream, options);
-        } catch (e) {
-            console.error("❌ MediaRecorderの作成に失敗しました:", e);
-            markMicLost('start-failed');
-            return;
+        } catch (e1) {
+            try {
+                recorder = new MediaRecorder(AppState.globalStream, mimeType ? { mimeType: mimeType } : {});
+            } catch (e2) {
+                console.error("❌ MediaRecorderの作成に失敗しました:", e2);
+                markMicLost('start-failed');
+                return;
+            }
         }
 
         const seg = {
@@ -3017,7 +3266,6 @@
             if (e.data && e.data.size > 0) {
                 seg.parts.push(e.data);
                 AppState.lastDataAt = Date.now();
-                // 🌟 端末内にも保存する（ブラウザが落ちても失わないため）
                 SegmentStore.putPart(seg.sessionId, seg.index, seg.partSeq++, e.data);
             }
         };
@@ -3032,22 +3280,18 @@
                 callback();
             }
 
-            // すでに別の録音エンジンに切り替わっている場合は、何もしない
             if (AppState.recorder !== recorder) return;
 
             if (AppState.isSegmentCycleActive && !AppState.suppressAutoRestart) {
                 if (isMicStreamLive()) {
                     startNewSegment();
                 } else {
-                    // マイクが切られて録音が自動停止した場合：取り直して再開する
                     recoverMicrophone('ended');
                 }
             }
         };
 
         recorder.onerror = (event) => {
-            // エラー後は onstop が呼ばれ、そこで区間の確定と再開（または取り直し）を行う。
-            // onstop が呼ばれない環境でも、定期点検（healthTick）が検知して復旧する。
             console.error("❌ MediaRecorderでエラーが発生しました:", event.error);
             logDiag("録音エンジンのエラー", [
                 `内容: ${event.error ? (event.error.name + " " + event.error.message) : "(不明)"}`
@@ -3055,7 +3299,6 @@
         };
 
         try {
-            // 🌟 1秒ごとにデータを受け取り、メモリと端末内に退避する
             recorder.start(1000);
         } catch (e) {
             console.error("❌ 録音の開始に失敗しました:", e);
@@ -3067,6 +3310,7 @@
         AppState.recorder = recorder;
         AppState.currentSegment = seg;
         AppState.lastDataAt = Date.now();
+        AppState.splitQuietSinceMs = 0;
 
         SegmentStore.putMeta({
             segKey: SegmentStore.segKey(seg.sessionId, seg.index),
@@ -3079,7 +3323,6 @@
         });
     }
 
-    // 🌟 区間を確定して送信に回す（何度呼ばれても1回だけ実行される）
     function finalizeSegment(seg) {
         if (!seg || seg.finalized) return;
         seg.finalized = true;
@@ -3101,7 +3344,6 @@
         const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
         const templateType = UI.templateSelect.value || "汎用議事録";
 
-        // 端末内の情報も最新の会議名・テンプレートにしておく（復旧時に使う）
         SegmentStore.putMeta({
             segKey: SegmentStore.segKey(sessionId, segmentIndex),
             sessionId: sessionId,
@@ -3134,7 +3376,6 @@
             }
 
             if (driveOk) {
-                // ドライブに保存できたので、端末内の一時保存は削除する
                 SegmentStore.deleteSegment(sessionId, segmentIndex);
             } else {
                 console.warn(`⚠️ 区間${segmentIndex + 1}: Drive保存に失敗したため、自動再送キューに保持します（端末内にも保存済み）。`);
@@ -3157,7 +3398,6 @@
         });
     }
 
-    // 🌟 通信失敗したセグメントを自動的に再送するヘルパー
     function retryPendingSegments() {
         if (!AppState.pendingRetrySegments || AppState.pendingRetrySegments.length === 0) return;
         if (!window.appController) return;
@@ -3183,7 +3423,6 @@
                         dotEl.classList.remove('error', 'processing');
                         dotEl.classList.add('complete');
                     }
-                    // 再送成功時は audioAppendFailures から該当チャンクを除外
                     if (window.appController.audioAppendFailures) {
                         window.appController.audioAppendFailures =
                             window.appController.audioAppendFailures.filter(f => f.chunkIndex !== item.segmentIndex);
@@ -3205,8 +3444,8 @@
         AppState.isStopping = true;
         AppState.isRecording = false;
         AppState.isSegmentCycleActive = false;
+        AppState.isLowVolume = false;
 
-        // マイクが止まったまま終了する場合は、終了時点までを「途切れ」として記録する
         if (AppState.micLostAtMs) {
             const openGap = {
                 fromSec: elapsedSecAt(AppState.micLostAtMs),
@@ -3239,15 +3478,15 @@
         try {
             await waitForRecorderToStop();
 
-            // 録音エンジンの停止イベントが届かなかった場合に備え、ここでも区間を確定する
             if (AppState.currentSegment) {
                 finalizeSegment(AppState.currentSegment);
             }
 
             stopMicTracks();
+            teardownWebMeetingStreams();
             teardownAudioProcessingChain();
+            AppState.isWebMeetingMode = false;
 
-            // 未送信・再送待ちのセグメントがあれば最後にもう一度再送キューへ乗せる
             retryPendingSegments();
 
             UI.statusText.innerHTML = "最後の音声データを保存中...";
@@ -3312,7 +3551,6 @@
 
             window.appController.clearState();
 
-            // 🌟 途切れた時間帯があれば、必ず知らせる
             let gapMessage = "";
             if (micGaps.length > 0) {
                 const gapLines = micGaps.map((gap) =>
@@ -3343,14 +3581,18 @@
             stopPseudoSleepCycle();
             releaseWakeLock();
             stopMicTracks();
+            teardownWebMeetingStreams();
             teardownAudioProcessingChain();
+            AppState.isWebMeetingMode = false;
             document.body.classList.remove('recording-active');
+
+            if (UI.webMeetingCheckbox) UI.webMeetingCheckbox.disabled = false;
+            if (UI.micSelect) UI.micSelect.disabled = false;
 
             UI.mainRecordBtn.style.display = "flex";
             UI.mainRecordBtn.disabled = false;
             AppState.isStopping = false;
 
-            // 送れなかった区間が端末内に残っていれば、あらためて送信を試みる
             recoverLeftoverSegments();
         }
     }
@@ -3425,8 +3667,8 @@
 
     bindEvents();
     showEnvironmentWarningIfNeeded();
+    initDesktopOptions();
 
-    // 起動時：前回の録音で端末内に残った未送信分があれば、自動で送る
     setTimeout(() => { recoverLeftoverSegments(); }, 1500);
 </script>
 </body>
