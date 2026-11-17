@@ -387,7 +387,9 @@ class RecorderController {
 
     // 🌟 録音完了をGASに通知する（録音途中に変更されたテンプレート種別も反映する）。
     //   GAS側で録音完了フラグが立ち、これ以降、バックグラウンド処理（processQueueTrigger）の対象になる。
-    async finalizeAudioAndGetResult(meetingName, templateType) {
+    //   recordingNotes（省略可）：録音が途切れた時間帯などの注記 { gaps: [{fromSec,toSec,reason}], abnormalEnd }。
+    //   GAS側でセッションフォルダに保存され、文字起こし・議事録の冒頭に注記として載る。
+    async finalizeAudioAndGetResult(meetingName, templateType, recordingNotes) {
         if (this.state.audioFinalized) {
             console.log("ℹ️ finalizeAudioAndGetResult: この録音は既に音声確定済みです。スキップします。");
             return {
@@ -411,6 +413,9 @@ class RecorderController {
             mimeType: this.state.mimeType || 'audio/webm',
             templateType: templateType || "汎用議事録"
         };
+        if (recordingNotes) {
+            payload.recordingNotes = recordingNotes;
+        }
 
         const audioFinalizeMaxRetries = this.maxRetries + 2;
         let lastError = null;
