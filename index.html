@@ -691,6 +691,30 @@
             50% { opacity: 0.55; }
         }
 
+        /* 🌟 小窓（ピクチャー・イン・ピクチャー）ボタン：録音中のみ表示 */
+        .pip-btn {
+            display: none;
+            margin-top: 10px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.07);
+            color: #e4e6eb;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .pip-btn:active { transform: scale(0.97); }
+        .pip-video {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 2px;
+            height: 2px;
+            opacity: 0.01;
+            pointer-events: none;
+        }
+
         .wake-lock-warning {
             display: none;
             margin-top: 12px;
@@ -1191,14 +1215,18 @@
 
         <div class="status-text" id="statusText">タップして録音を開始</div>
 
+        <!-- 🌟 他のアプリで資料を見る前に押すと、この画面が小窓になって録音を続けやすくなる -->
+        <button class="pip-btn" id="pipBtn" type="button">小窓にして他のアプリを見る</button>
+        <video class="pip-video" id="pipVideo" muted playsinline></video>
+
         <div class="wake-lock-warning" id="wakeLockWarning">
             ⚠️ 画面ロックが長時間続くとOSにより録音が中断される場合があります。<br>
             机に置く際は画面を表示したまま（省電力モード）にしてください。
         </div>
         <div class="wake-lock-note">
-            ※ 他のアプリを開いている間や画面ロック中は、端末の仕様でマイクが止まることがあります。<br>
-            止まった場合は、この画面に戻ると自動で録音を再開し、途切れた時間をお知らせします。<br>
-            （資料は別の端末で見るか、画面分割でこの画面を表示したままにするのが確実です）
+            ※ 他のアプリで資料を見るときは、先に「小窓にして他のアプリを見る」を押すと、録音が止まりにくくなります。<br>
+            それでも端末の仕様でマイクが止まることがあります。止まった場合は、この画面に戻ると<br>
+            自動で録音を再開し、途切れた時間をお知らせします。
         </div>
     </div>
 
@@ -1335,7 +1363,10 @@
         SILENCE_RECOVER_INTERVAL_MS: 120000, // 無音を理由にしたマイク取り直しの最短間隔
         MUTE_GRACE_MS: 5000,              // ミュートがこの時間続いたらマイクを取り直す
         RECOVER_MIN_INTERVAL_MS: 10000,   // マイク取り直しの最短間隔
-        MIC_REQUEST_TIMEOUT_MS: 8000      // マイク取り直しの待ち時間の上限
+        MIC_REQUEST_TIMEOUT_MS: 8000,     // マイク取り直しの待ち時間の上限
+        // 🌟 バックグラウンドで止められにくくする工夫（不具合が出る端末では false にして切る）
+        KEEPALIVE_SILENT_AUDIO: true,     // 録音中、無音の音声を再生し続ける（「再生中のページ」として扱わせる）
+        KEEPALIVE_PIP: true               // 「小窓にして他のアプリを見る」ボタンを表示する
     };
 
     const AppState = {
@@ -1409,7 +1440,9 @@
         headerLiveBadgeText: document.getElementById('headerLiveBadgeText'),
         voiceRingOuter: document.getElementById('voiceRingOuter'),
         voiceRingInner: document.getElementById('voiceRingInner'),
-        audioVisualizer: document.getElementById('audioVisualizer')
+        audioVisualizer: document.getElementById('audioVisualizer'),
+        pipBtn: document.getElementById('pipBtn'),
+        pipVideo: document.getElementById('pipVideo')
     };
 
     const MIC_LOST_REASON_LABELS = {
@@ -1552,6 +1585,216 @@
                 tx.objectStore("parts").delete(range);
                 tx.objectStore("metas").delete(segKey);
             });
+        }
+    };
+
+    // ==========================================
+    // 🛡️ バックグラウンドで止められにくくする工夫（KeepAlive）
+    //
+    //   OSやブラウザは、「何もしていない」と判断した裏のページを優先的に休止する。
+    //   そこで、録音中は次の2つを行い、休止の対象になりにくくする。
+    //   どちらも「止まりにくくする」ための工夫であり、保証ではない。
+    //   使えない端末では何もせず、従来どおり動作する。
+    //
+    //   1) 無音の音声を再生し続ける
+    //      「音声を再生中のページ」として扱われ、通知欄に再生中の表示が出る。
+    //   2) 小窓（ピクチャー・イン・ピクチャー）
+    //      他のアプリを見る前にボタンを押すと、この画面が小さな窓として
+    //      他のアプリの上に残る。ブラウザが「表示中」の扱いになるため、
+    //      マイクを止められにくい。小窓には経過時間とマイクの状態を表示する。
+    // ==========================================
+    const KeepAlive = {
+        audioEl: null,
+        audioUrl: null,
+        pipCanvas: null,
+        pipReady: false,
+
+        // 無音のWAV（8kHz・8bit・モノラル）を作る
+        _buildSilentWavUrl: function(seconds) {
+            const sampleRate = 8000;
+            const numSamples = sampleRate * seconds;
+            const buffer = new ArrayBuffer(44 + numSamples);
+            const view = new DataView(buffer);
+            const writeStr = (offset, str) => {
+                for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+            };
+            writeStr(0, "RIFF");
+            view.setUint32(4, 36 + numSamples, true);
+            writeStr(8, "WAVE");
+            writeStr(12, "fmt ");
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);          // PCM
+            view.setUint16(22, 1, true);          // モノラル
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate, true); // バイト/秒
+            view.setUint16(32, 1, true);
+            view.setUint16(34, 8, true);          // 8bit
+            writeStr(36, "data");
+            view.setUint32(40, numSamples, true);
+            new Uint8Array(buffer, 44).fill(128); // 8bitの無音は128
+            return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+        },
+
+        // 利用者の操作（録音ボタンのタップ）の直後に呼ぶこと
+        startSilentAudio: function() {
+            if (!APP_CONFIG.KEEPALIVE_SILENT_AUDIO) return;
+            try {
+                if (!this.audioEl) {
+                    this.audioUrl = this._buildSilentWavUrl(15);
+                    const el = new Audio();
+                    el.src = this.audioUrl;
+                    el.loop = true;
+                    el.preload = "auto";
+                    el.setAttribute("playsinline", "");
+                    this.audioEl = el;
+                }
+                const playing = this.audioEl.play();
+                if (playing && playing.catch) {
+                    playing.catch((e) => console.warn("⚠️ 無音再生を開始できませんでした（録音には影響ありません）:", e));
+                }
+
+                if ("mediaSession" in navigator) {
+                    try {
+                        if (typeof MediaMetadata !== "undefined") {
+                            navigator.mediaSession.metadata = new MediaMetadata({
+                                title: "録音中",
+                                artist: "らくらく議事録"
+                            });
+                        }
+                        // 通知欄やロック画面の一時停止ボタンで止められないようにする
+                        const keepPlaying = () => { this.ensureAudioPlaying(); };
+                        ["play", "pause", "stop"].forEach((action) => {
+                            try { navigator.mediaSession.setActionHandler(action, keepPlaying); } catch (e) { /* 未対応 */ }
+                        });
+                        navigator.mediaSession.playbackState = "playing";
+                    } catch (e) { /* 無視 */ }
+                }
+            } catch (e) {
+                console.warn("⚠️ 無音再生の準備に失敗しました（録音には影響ありません）:", e);
+            }
+        },
+
+        // 再生が止められていたら再開する（定期点検・タップ時に呼ぶ）
+        ensureAudioPlaying: function() {
+            if (!this.audioEl || !AppState.isRecording) return;
+            if (this.audioEl.paused) {
+                const playing = this.audioEl.play();
+                if (playing && playing.catch) playing.catch(() => {});
+            }
+        },
+
+        stopSilentAudio: function() {
+            if (this.audioEl) {
+                try { this.audioEl.pause(); } catch (e) { /* 無視 */ }
+            }
+            if ("mediaSession" in navigator) {
+                try {
+                    navigator.mediaSession.playbackState = "none";
+                    navigator.mediaSession.metadata = null;
+                    ["play", "pause", "stop"].forEach((action) => {
+                        try { navigator.mediaSession.setActionHandler(action, null); } catch (e) { /* 未対応 */ }
+                    });
+                } catch (e) { /* 無視 */ }
+            }
+        },
+
+        pipSupported: function() {
+            if (!APP_CONFIG.KEEPALIVE_PIP || !UI.pipVideo) return false;
+            const canvasOk = typeof HTMLCanvasElement !== "undefined" &&
+                typeof HTMLCanvasElement.prototype.captureStream === "function";
+            if (!canvasOk) return false;
+            const standard = !!document.pictureInPictureEnabled &&
+                typeof UI.pipVideo.requestPictureInPicture === "function";
+            const webkit = typeof UI.pipVideo.webkitSupportsPresentationMode === "function" &&
+                UI.pipVideo.webkitSupportsPresentationMode("picture-in-picture");
+            return standard || webkit;
+        },
+
+        isInPip: function() {
+            if (document.pictureInPictureElement) return true;
+            return !!(UI.pipVideo && UI.pipVideo.webkitPresentationMode === "picture-in-picture");
+        },
+
+        // 小窓に表示する絵（経過時間とマイクの状態）を描く
+        drawPip: function() {
+            if (!this.pipCanvas) return;
+            const canvas = this.pipCanvas;
+            const c = canvas.getContext("2d");
+            const lost = !!AppState.micLostAtMs;
+            const sec = AppState.recordingStartedAt
+                ? Math.floor((Date.now() - AppState.recordingStartedAt) / 1000) : 0;
+
+            c.fillStyle = lost ? "#3a2f00" : "#121419";
+            c.fillRect(0, 0, canvas.width, canvas.height);
+
+            c.textAlign = "center";
+            c.fillStyle = lost ? "#ffd43b" : "#ff7b6b";
+            c.font = "bold 26px sans-serif";
+            c.fillText(lost ? "マイク停止中" : "● 録音中", canvas.width / 2, 58);
+
+            c.fillStyle = "#f8f9fa";
+            c.font = "bold 54px monospace";
+            c.fillText(formatElapsed(sec), canvas.width / 2, 122);
+
+            c.fillStyle = lost ? "#ffd43b" : "#8b919e";
+            c.font = "15px sans-serif";
+            c.fillText(lost ? "アプリに戻ってください" : "らくらく議事録", canvas.width / 2, 158);
+        },
+
+        _preparePip: async function() {
+            if (this.pipReady) return;
+            const canvas = document.createElement("canvas");
+            canvas.width = 384;
+            canvas.height = 192;
+            this.pipCanvas = canvas;
+            this.drawPip();
+            UI.pipVideo.srcObject = canvas.captureStream(2);
+            UI.pipVideo.muted = true;
+            await UI.pipVideo.play();
+            this.pipReady = true;
+        },
+
+        togglePip: async function() {
+            try {
+                if (this.isInPip()) {
+                    await this.exitPip();
+                    return;
+                }
+                await this._preparePip();
+                if (typeof UI.pipVideo.requestPictureInPicture === "function" && document.pictureInPictureEnabled) {
+                    await UI.pipVideo.requestPictureInPicture();
+                } else if (typeof UI.pipVideo.webkitSetPresentationMode === "function") {
+                    UI.pipVideo.webkitSetPresentationMode("picture-in-picture");
+                }
+            } catch (e) {
+                console.warn("⚠️ 小窓表示を開始できませんでした:", e);
+                logDiag("小窓表示の開始に失敗", [`内容: ${e && e.message ? e.message : e}`]);
+                alert("この端末・ブラウザでは、小窓表示を開始できませんでした。\n録音はそのまま続いています。");
+            }
+        },
+
+        exitPip: async function() {
+            try {
+                if (document.pictureInPictureElement && document.exitPictureInPicture) {
+                    await document.exitPictureInPicture();
+                } else if (UI.pipVideo && UI.pipVideo.webkitPresentationMode === "picture-in-picture") {
+                    UI.pipVideo.webkitSetPresentationMode("inline");
+                }
+            } catch (e) { /* 無視 */ }
+        },
+
+        // 録音開始後に呼ぶ
+        showPipButton: function() {
+            if (UI.pipBtn && this.pipSupported()) {
+                UI.pipBtn.style.display = "inline-block";
+            }
+        },
+
+        // 録音の停止時・開始失敗時に呼ぶ
+        stop: function() {
+            this.stopSilentAudio();
+            this.exitPip();
+            if (UI.pipBtn) UI.pipBtn.style.display = "none";
         }
     };
 
@@ -1765,6 +2008,10 @@
         }
 
         UI.mainRecordBtn.addEventListener('click', handleRecordButtonClick);
+
+        if (UI.pipBtn) {
+            UI.pipBtn.addEventListener('click', () => { KeepAlive.togglePip(); });
+        }
 
         // 通信が復帰したら、未送信分の再送を試みる
         window.addEventListener('online', () => {
@@ -2119,6 +2366,7 @@
                 if (AppState.audioContext && AppState.audioContext.state !== 'running') {
                     AppState.audioContext.resume().catch(() => {});
                 }
+                KeepAlive.ensureAudioPlaying();
                 if (AppState.micLostAtMs && !AppState.isRecoveringMic) {
                     // 利用者の操作なので、待ち時間の制限を解除してすぐに取り直す
                     AppState.lastRecoverAttemptAt = 0;
@@ -2511,6 +2759,9 @@
         const now = Date.now();
         const visible = document.visibilityState === 'visible';
 
+        // 0) 無音再生が止められていたら再開する
+        KeepAlive.ensureAudioPlaying();
+
         // 1) 画面スリープ防止が外れていたら取り直す
         if (visible && AppState.wakeLockSupported && !AppState.wakeLock &&
             now - AppState.lastWakeLockTryAt > 10000) {
@@ -2642,6 +2893,9 @@
 
     async function startRecording() {
         try {
+            // 🌟 ボタンのタップ直後（利用者の操作として扱われる間）に、無音再生を開始する
+            KeepAlive.startSilentAudio();
+
             // 🌟 OS標準のハードウェア音声処理（エコー除去・ノイズ抑制・オートゲイン）を有効化
             const stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
             AppState.rawMicStream = stream;
@@ -2681,6 +2935,7 @@
             updateRecordingStatusUI();
 
             document.body.classList.add('recording-active');
+            KeepAlive.showPipButton();
 
             await requestWakeLock();
             resetPseudoSleepTimer();
@@ -2709,6 +2964,7 @@
             releaseWakeLock();
             stopMicTracks();
             teardownAudioProcessingChain();
+            KeepAlive.stop();
             document.body.classList.remove('recording-active');
             UI.mainRecordBtn.classList.remove('recording');
             UI.mainRecordBtn.innerHTML = SVG_ICONS.mic;
@@ -2967,6 +3223,7 @@
 
         stopElapsedTimeDisplay();
         stopPseudoSleepCycle();
+        KeepAlive.stop();
 
         document.body.classList.remove('recording-active');
 
@@ -3147,6 +3404,7 @@
         if (!AppState.recordingStartedAt) return;
         const sec = Math.floor((Date.now() - AppState.recordingStartedAt) / 1000);
         UI.elapsedTime.textContent = formatElapsed(sec);
+        KeepAlive.drawPip();
 
         if (AppState.isPseudoSleeping) {
             updateSleepOverlayElapsedText();
