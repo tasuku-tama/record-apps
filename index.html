@@ -1348,7 +1348,7 @@
 </div>
 
 <!-- キャッシュ強制回避用のバージョン記述 -->
-<script src="js/recorder-controller.js?v=6.0"
+<script src="js/recorder-controller.js?v=6.1"
     onload="console.log('✅ recorder-controller.js 読み込み成功');"
     onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
 ></script>
@@ -1377,6 +1377,10 @@
         SEGMENT_INTERVAL_MS: 300000,      // 5分ごとに区切って保存
         SEGMENT_HARD_INTERVAL_MS: 330000, // 最長5分30秒で必ず区切る（無音がなくても分割）
         SPLIT_SILENCE_MS: 800,            // 0.8秒以上の無音を会話の切れ目とみなす
+        LEVEL_SAMPLE_INTERVAL_MS: 200,    // 音量を測る間隔
+        LEVEL_HISTORY_SIZE: 150,          // 音量の履歴の件数（200ms×150＝直近30秒）
+        SPLIT_ABSOLUTE_SILENCE_DB: -70,   // これ以下は無条件に「静か」とみなす
+        SPLIT_MIN_DYNAMIC_RANGE_DB: 12,   // 直近30秒の音量差がこれ未満なら、切れ目の判定をしない（時間で区切る）
         LOW_VOLUME_GUIDE_MS: 30000,       // 小音量が30秒続いたら画面に控えめに案内を出す
         AUDIO_BITS_PER_SECOND: 64000,     // 音声向けビットレート（64kbps）
         // 画面が裏にある間は区切りを保留するが、この倍率を超えたら裏でも区切る
@@ -1434,6 +1438,15 @@
         visualizerRafId: null,
         // 🌟 スマート区間分割＆小声ガイド用の音量状態
         currentVolumeLevel: 0,
+        volumeLevelValid: false,        // 音量を測れているか（AudioContextが動いているか）
+        levelSamplerId: null,           // 音量の定期測定（0.2秒ごと）
+        levelBuffer: null,
+        levelAnalyserNode: null,        // 生の入力の音量（dB）を測る解析ノード
+        levelTimeBuffer: null,
+        levelHistory: [],               // 直近30秒ぶんの音量（dB）
+        currentLevelDb: -100,
+        splitStats: { quiet: 0, forced: 0 }, // 区切り方の内訳（無音で区切った回数／時間で区切った回数）
+        leftoverRetryTimerId: null,
         splitQuietSinceMs: 0,
         lowVolumeSinceMs: 0,
         isLowVolume: false,
@@ -1821,6 +1834,35 @@
     // ==========================================
     // 🩺 診断情報への記録（マイクの停止・復旧など）
     // ==========================================
+    // ==========================================
+    // 📝 録音の注記（途切れた時間帯など）の一時保存
+    //   録音の確定時にGASへ送り、文字起こし・議事録の冒頭に注記として載せる。
+    //   確定が後回しになった場合（未送信の音声がある場合など）にも失わないよう、
+    //   端末内（localStorage）に控えておく。
+    // ==========================================
+    const RECORDING_NOTES_KEY_PREFIX = "recorder_notes_";
+
+    function saveRecordingNotesLocal(sessionId, notes) {
+        try {
+            localStorage.setItem(RECORDING_NOTES_KEY_PREFIX + sessionId, JSON.stringify(notes));
+        } catch (e) { /* 無視 */ }
+    }
+
+    function loadRecordingNotesLocal(sessionId) {
+        try {
+            const saved = localStorage.getItem(RECORDING_NOTES_KEY_PREFIX + sessionId);
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function removeRecordingNotesLocal(sessionId) {
+        try {
+            localStorage.removeItem(RECORDING_NOTES_KEY_PREFIX + sessionId);
+        } catch (e) { /* 無視 */ }
+    }
+
     function logDiag(title, lines) {
         const textLines = [`===== ${title} =====`,
             `発生日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`]
@@ -2199,6 +2241,7 @@
         if (navigator.onLine === false) return;
 
         AppState.isLeftoverRecovering = true;
+        let hasRemaining = false;
         try {
             const metas = await SegmentStore.listMetas();
             if (metas.length === 0) return;
@@ -2257,7 +2300,16 @@
                     }
                 }
 
-                if (!allSent || sentCount === 0) continue;
+                if (!allSent) {
+                    hasRemaining = true;
+                    continue;
+                }
+                if (sentCount === 0) continue;
+
+                // 停止操作まで済んでいた録音は、控えておいた注記（途切れた時間帯）を付ける。
+                // 控えがない場合は、停止操作の前にアプリが閉じられたものとして扱う。
+                const savedNotes = loadRecordingNotesLocal(sessionId);
+                const notesForFinalize = savedNotes || { gaps: [], abnormalEnd: true };
 
                 try {
                     await window.appController.callGasApi({
@@ -2265,8 +2317,10 @@
                         sessionId: sessionId,
                         meetingName: lastMeta.meetingName || "無題の会議",
                         mimeType: lastMeta.mimeType || "audio/webm",
-                        templateType: lastMeta.templateType || "汎用議事録"
+                        templateType: lastMeta.templateType || "汎用議事録",
+                        recordingNotes: notesForFinalize
                     });
+                    removeRecordingNotesLocal(sessionId);
 
                     if (!AppState.isRecording && !AppState.isStopping &&
                         window.appController.state.sessionId === sessionId) {
@@ -2291,8 +2345,17 @@
             }
         } catch (err) {
             console.warn("⚠️ 未送信の録音の確認中にエラーが発生しました:", err);
+            hasRemaining = true;
         } finally {
             AppState.isLeftoverRecovering = false;
+
+            // 送れなかった分が残っている場合は、1分後にもう一度試す（画面を開いている間）
+            if (hasRemaining && !AppState.leftoverRetryTimerId) {
+                AppState.leftoverRetryTimerId = setTimeout(() => {
+                    AppState.leftoverRetryTimerId = null;
+                    recoverLeftoverSegments();
+                }, 60000);
+            }
         }
     }
 
@@ -2483,11 +2546,17 @@
         compressor.connect(analyser);
         source.connect(silenceAnalyser);
 
+        // 🌟 区間の区切り判定用：生の入力の音量（dB）を測る（約0.04秒ぶんの波形を見る）
+        const levelAnalyser = audioContext.createAnalyser();
+        levelAnalyser.fftSize = 2048;
+        source.connect(levelAnalyser);
+
         return {
             audioContext: audioContext,
             analyser: analyser,
             silenceAnalyser: silenceAnalyser,
-            nodes: { source, highpass, compressor, analyser, silenceAnalyser }
+            levelAnalyser: levelAnalyser,
+            nodes: { source, highpass, compressor, analyser, silenceAnalyser, levelAnalyser }
         };
     }
 
@@ -2502,6 +2571,9 @@
             AppState.audioContext = chain.audioContext;
             AppState.analyserNode = chain.analyser;
             AppState.silenceAnalyserNode = chain.silenceAnalyser;
+            AppState.levelAnalyserNode = chain.levelAnalyser;
+            AppState.levelHistory = [];
+            AppState.levelTimeBuffer = null;
             AppState.audioProcessingNodes = chain.nodes;
             AppState.silenceBuffer = null;
 
@@ -2545,7 +2617,6 @@
             }
 
             const avgLevel = sum / (bars.length * 255); // 0.0 〜 1.0
-            AppState.currentVolumeLevel = avgLevel;
 
             if (UI.voiceRingInner && UI.voiceRingOuter) {
                 const innerScale = 1 + avgLevel * 0.28;
@@ -2586,6 +2657,8 @@
         AppState.audioProcessingNodes = null;
         AppState.analyserNode = null;
         AppState.silenceAnalyserNode = null;
+        AppState.levelAnalyserNode = null;
+        AppState.levelHistory = [];
         AppState.silenceBuffer = null;
     }
 
@@ -2961,7 +3034,7 @@
         checkDigitalSilence(now, visible);
 
         // 🌟 小声ガイドの判定（可視状態かつマイク正常時のみ）
-        if (visible && !AppState.micLostAtMs && AppState.analyserNode) {
+        if (visible && !AppState.micLostAtMs && AppState.volumeLevelValid) {
             if (AppState.currentVolumeLevel < 0.025) {
                 if (!AppState.lowVolumeSinceMs) {
                     AppState.lowVolumeSinceMs = now;
@@ -2978,37 +3051,161 @@
             }
         }
 
-        // 🌟 スマート区間分割：4分45秒〜5分30秒の間で会話の切れ目（0.8秒の無音）を探して区切る
-        const seg = AppState.currentSegment;
-        if (seg && !seg.finalized) {
-            const age = now - seg.startedAt;
-            const mustRotateHidden = age >= APP_CONFIG.SEGMENT_INTERVAL_MS * APP_CONFIG.HIDDEN_ROTATION_FACTOR;
-            const mustRotateHard = visible && age >= APP_CONFIG.SEGMENT_HARD_INTERVAL_MS;
+        // 🌟 区間の区切り（音量の定期測定側でも判定している。こちらは測定が止まった場合の保険）
+        checkSegmentRotation(now);
+    }
 
-            let shouldSplitNow = false;
-            if (mustRotateHidden || mustRotateHard) {
-                shouldSplitNow = true;
-            } else if (visible && age >= APP_CONFIG.SEGMENT_SOFT_INTERVAL_MS) {
-                if (AppState.currentVolumeLevel < 0.04) {
-                    if (!AppState.splitQuietSinceMs) {
-                        AppState.splitQuietSinceMs = now;
-                    } else if (now - AppState.splitQuietSinceMs >= APP_CONFIG.SPLIT_SILENCE_MS) {
-                        shouldSplitNow = true;
-                    }
-                } else {
-                    AppState.splitQuietSinceMs = 0;
-                }
-            }
+    // ==========================================
+    // 🎚️ 音量の定期測定（0.2秒ごと）と、区間の区切り判定
+    //
+    // 🛠【2026-11-17変更】
+    //   従来は、音量を波形の描画処理の中で更新していた。描画は省電力表示
+    //   （疑似スリープ）の間は止まるため、会議中はほぼ常に音量が古い値のままになり、
+    //   「会話の切れ目で区切る」判定が働いていなかった。
+    //   音量の測定を描画から切り離し、専用のタイマーで測るようにした。
+    // ==========================================
+    // 波形表示と同じ尺度（0〜1）の音量。小声ガイドの判定に使う（従来と同じ計算）。
+    function sampleVolumeLevel() {
+        const analyser = AppState.analyserNode;
+        const ctx = AppState.audioContext;
+        if (!analyser || !ctx || ctx.state !== 'running') return null;
 
-            if (shouldSplitNow) {
+        if (!AppState.levelBuffer || AppState.levelBuffer.length !== analyser.frequencyBinCount) {
+            AppState.levelBuffer = new Uint8Array(analyser.frequencyBinCount);
+        }
+        const buffer = AppState.levelBuffer;
+        analyser.getByteFrequencyData(buffer);
+
+        const BANDS = 12;
+        let sum = 0;
+        for (let i = 0; i < BANDS; i++) {
+            sum += buffer[i + 1] || 0;
+        }
+        return sum / (BANDS * 255);
+    }
+
+    // 生の入力の音量をdB（0が最大、-100が無音）で測る
+    function sampleLevelDb() {
+        const analyser = AppState.levelAnalyserNode;
+        const ctx = AppState.audioContext;
+        if (!analyser || !ctx || ctx.state !== 'running') return null;
+        if (typeof analyser.getFloatTimeDomainData !== 'function') return null;
+
+        if (!AppState.levelTimeBuffer || AppState.levelTimeBuffer.length !== analyser.fftSize) {
+            AppState.levelTimeBuffer = new Float32Array(analyser.fftSize);
+        }
+        const buffer = AppState.levelTimeBuffer;
+        analyser.getFloatTimeDomainData(buffer);
+
+        let sumSquares = 0;
+        for (let i = 0; i < buffer.length; i++) {
+            sumSquares += buffer[i] * buffer[i];
+        }
+        const rms = Math.sqrt(sumSquares / buffer.length);
+        const db = rms > 0 ? 20 * Math.log10(rms) : -100;
+        return Math.max(-100, Math.min(0, db));
+    }
+
+    // 🌟 「いま静かか（会話の切れ目か）」の判定。
+    //   マイクや部屋によって音量の水準が大きく違うため、固定のしきい値ではなく、
+    //   直近30秒の「静かなときの音量」と「話しているときの音量」から相対的に判定する。
+    function isQuietLevel(db) {
+        const history = AppState.levelHistory;
+        history.push(db);
+        if (history.length > APP_CONFIG.LEVEL_HISTORY_SIZE) history.shift();
+
+        if (db <= APP_CONFIG.SPLIT_ABSOLUTE_SILENCE_DB) return true;
+        if (history.length < 25) return false; // 測り始めの5秒は判定しない
+
+        const sorted = history.slice().sort((a, b) => a - b);
+        const floorDb = sorted[Math.floor(sorted.length * 0.10)]; // 静かなときの音量
+        const peakDb = sorted[Math.floor(sorted.length * 0.95)];  // 話しているときの音量
+        const range = peakDb - floorDb;
+        if (range < APP_CONFIG.SPLIT_MIN_DYNAMIC_RANGE_DB) return false;
+
+        return db <= floorDb + Math.max(6, range * 0.25);
+    }
+
+    function levelSamplerTick() {
+        if (!AppState.isRecording || AppState.isStopping) return;
+
+        const now = Date.now();
+
+        const level = sampleVolumeLevel();
+        if (level !== null) {
+            AppState.currentVolumeLevel = level;
+        }
+
+        const db = sampleLevelDb();
+        if (db === null || level === null) {
+            // 音量を測れない間は「静か」とは見なさない（時間による区切りだけが働く）
+            AppState.volumeLevelValid = false;
+            AppState.splitQuietSinceMs = 0;
+        } else {
+            AppState.volumeLevelValid = true;
+            AppState.currentLevelDb = db;
+            if (isQuietLevel(db)) {
+                if (!AppState.splitQuietSinceMs) AppState.splitQuietSinceMs = now;
+            } else {
                 AppState.splitQuietSinceMs = 0;
-                console.log(`✂️ 区間${seg.index + 1}を区切ります（${Math.round(age / 1000)}秒）。`);
-                try {
-                    AppState.recorder.stop();
-                } catch (e) {
-                    console.warn("⚠️ 区間の区切りに失敗しました:", e);
-                }
             }
+        }
+
+        checkSegmentRotation(now);
+    }
+
+    function startLevelSampler() {
+        stopLevelSampler();
+        AppState.levelSamplerId = setInterval(levelSamplerTick, APP_CONFIG.LEVEL_SAMPLE_INTERVAL_MS);
+    }
+
+    function stopLevelSampler() {
+        if (AppState.levelSamplerId) {
+            clearInterval(AppState.levelSamplerId);
+            AppState.levelSamplerId = null;
+        }
+        AppState.volumeLevelValid = false;
+    }
+
+    // 🌟 区間の区切り：4分45秒を過ぎたら会話の切れ目（0.8秒以上の静かな状態）を探し、
+    //   見つからなければ5分30秒で区切る。画面が裏にある間は保留し、最長15分で区切る。
+    function checkSegmentRotation(now) {
+        if (!AppState.isRecording || AppState.isStopping || AppState.isRecoveringMic) return;
+
+        const seg = AppState.currentSegment;
+        const recorder = AppState.recorder;
+        if (!seg || seg.finalized || seg.rotationRequested) return;
+        if (!recorder || recorder.state !== 'recording') return;
+
+        const visible = document.visibilityState === 'visible';
+        const age = now - seg.startedAt;
+
+        const mustRotateHidden = age >= APP_CONFIG.SEGMENT_INTERVAL_MS * APP_CONFIG.HIDDEN_ROTATION_FACTOR;
+        const mustRotateHard = visible && age >= APP_CONFIG.SEGMENT_HARD_INTERVAL_MS;
+        const quietLongEnough =
+            AppState.volumeLevelValid &&
+            AppState.splitQuietSinceMs > 0 &&
+            now - AppState.splitQuietSinceMs >= APP_CONFIG.SPLIT_SILENCE_MS;
+        const softSplit = visible && age >= APP_CONFIG.SEGMENT_SOFT_INTERVAL_MS && quietLongEnough;
+
+        if (!mustRotateHidden && !mustRotateHard && !softSplit) return;
+
+        const byQuiet = softSplit && !mustRotateHidden && !mustRotateHard;
+        seg.rotationRequested = true;
+        if (byQuiet) {
+            AppState.splitStats.quiet++;
+        } else {
+            AppState.splitStats.forced++;
+        }
+        console.log(
+            `✂️ 区間${seg.index + 1}を区切ります（${Math.round(age / 1000)}秒、` +
+            `${byQuiet ? "会話の切れ目" : "時間による区切り"}）。`
+        );
+        try {
+            recorder.stop();
+        } catch (e) {
+            seg.rotationRequested = false;
+            console.warn("⚠️ 区間の区切りに失敗しました:", e);
         }
     }
 
@@ -3158,6 +3355,7 @@
             AppState.silentSinceMs = 0;
             AppState.lastSilentRecoverAt = 0;
             AppState.splitQuietSinceMs = 0;
+            AppState.splitStats = { quiet: 0, forced: 0 };
             AppState.lowVolumeSinceMs = 0;
             AppState.isLowVolume = false;
 
@@ -3462,6 +3660,13 @@
         }
         const micGaps = AppState.micGaps.slice();
 
+        // 🌟 途切れた時間帯を、確定時にGASへ送る注記として控えておく
+        const stoppingSessionId = window.appController ? window.appController.state.sessionId : "";
+        const recordingNotes = { gaps: micGaps, abnormalEnd: false };
+        if (stoppingSessionId) {
+            saveRecordingNotesLocal(stoppingSessionId, recordingNotes);
+        }
+
         stopElapsedTimeDisplay();
         stopPseudoSleepCycle();
         KeepAlive.stop();
@@ -3499,13 +3704,40 @@
             const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
             const templateType = UI.templateSelect.value || "汎用議事録";
 
+            logDiag("区間の区切り方", [
+                `会話の切れ目で区切った回数: ${AppState.splitStats.quiet}`,
+                `時間で区切った回数: ${AppState.splitStats.forced}`
+            ]);
+
+            // 🌟【2026-11-17変更】まだ送信できていない区間がある場合は、録音を確定しない。
+            //   ここで確定すると、欠けたまま議事録が作られ、後から届いた音声は反映されない。
+            //   未送信分は端末内に保存されているので、送信できた時点で自動的に確定する
+            //   （recoverLeftoverSegments が担当。通信の復帰時・1分ごと・次回起動時に試す）。
+            const unsentCount = AppState.pendingRetrySegments.length;
+            if (unsentCount > 0 && SegmentStore.available) {
+                AppState.pendingRetrySegments = [];
+                UI.progressContainer.style.display = "block";
+                UI.progressTitle.innerHTML = "⚠️ 未送信の音声があります（送信でき次第、自動で確定します）";
+                UI.statusText.innerHTML = "未送信の音声があります";
+                UI.statusText.style.color = "#fa5252";
+                if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "PENDING";
+                logDiag("録音の確定を保留", [`未送信の区間数: ${unsentCount}`]);
+                alert(
+                    "⚠️ 録音した音声のうち、" + unsentCount + "区間をまだ送信できていません。\n\n" +
+                    "音声はこの端末内に保存されています。通信できる状態でこのアプリを開いたままにするか、" +
+                    "あとで開き直すと、自動で送信され、文字起こし・議事録の作成が始まります。\n\n" +
+                    "※ 送信が終わるまで、このブラウザの閲覧データ（サイトのデータ）を消さないでください。"
+                );
+                return;
+            }
+
             UI.statusText.innerHTML = "音声データを確定保存しています...";
             UI.progressContainer.style.display = "block";
             UI.progressTitle.innerHTML = "音声データの確認中...";
 
             let audioResult;
             try {
-                audioResult = await window.appController.finalizeAudioAndGetResult(meetingName, templateType);
+                audioResult = await window.appController.finalizeAudioAndGetResult(meetingName, templateType, recordingNotes);
             } catch (audioError) {
                 console.error("❌ 音声確定処理が失敗しました:", audioError);
                 UI.progressTitle.innerHTML = "⚠️ 音声データの確認に失敗しました";
@@ -3553,6 +3785,9 @@
             }
 
             window.appController.clearState();
+            if (stoppingSessionId) {
+                removeRecordingNotesLocal(stoppingSessionId);
+            }
 
             let gapMessage = "";
             if (micGaps.length > 0) {
@@ -3563,7 +3798,7 @@
                 gapMessage =
                     "\n\n⚠️ 録音が途切れた時間帯があります（録音開始からの経過時間）。\n" +
                     gapLines.join("\n") + "\n" +
-                    "この間の発言は、文字起こし・議事録に含まれません。";
+                    "この間の発言は、文字起こし・議事録に含まれません（議事録の冒頭にも注記されます）。";
                 logDiag("録音の途切れ（まとめ）", gapLines);
             }
 
@@ -3632,6 +3867,7 @@
     // ⏱️ デジタルタイムカウンター表示（1秒ごとの定期点検も兼ねる）
     // ==========================================
     function startElapsedTimeDisplay() {
+        startLevelSampler();
         updateElapsedTimeText();
         AppState.elapsedTimerId = setInterval(() => {
             updateElapsedTimeText();
@@ -3639,6 +3875,7 @@
         }, 1000);
     }
     function stopElapsedTimeDisplay() {
+        stopLevelSampler();
         if (AppState.elapsedTimerId) {
             clearInterval(AppState.elapsedTimerId);
             AppState.elapsedTimerId = null;
