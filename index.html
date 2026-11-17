@@ -2164,7 +2164,7 @@
         UI.recoveryStatusText.innerHTML = "音声データを確定し、バックグラウンド処理に引き継いでいます...";
 
         try {
-            const result = await window.appController.finalizeAudioAndGetResult(meetingName);
+            const result = await window.appController.finalizeAudioAndGetResult(meetingName, templateType);
 
             if (result && result.audioFinalized === false) {
                 UI.recoveryStatusText.innerHTML =
@@ -2264,7 +2264,8 @@
                         action: "finalizeAudio",
                         sessionId: sessionId,
                         meetingName: lastMeta.meetingName || "無題の会議",
-                        mimeType: lastMeta.mimeType || "audio/webm"
+                        mimeType: lastMeta.mimeType || "audio/webm",
+                        templateType: lastMeta.templateType || "汎用議事録"
                     });
 
                     if (!AppState.isRecording && !AppState.isStopping &&
@@ -2874,11 +2875,19 @@
             }
 
             AppState.rawMicStream = stream;
-            if (AppState.isWebMeetingMode && AppState.displayStream && AppState.displayStream.getAudioTracks().length > 0) {
+
+            // 画面共有がまだ生きている場合のみ再合成し、既に終了していればマイク単独録音へ安全に切り替える
+            const liveDisplayAudio = AppState.displayStream &&
+                AppState.displayStream.getAudioTracks().some(t => t.readyState === 'live');
+            if (AppState.isWebMeetingMode && liveDisplayAudio) {
                 const mixed = await buildWebMeetingMixedStream(stream, AppState.displayStream);
                 AppState.globalStream = mixed;
                 await setupAnalyserChain(mixed);
             } else {
+                if (AppState.isWebMeetingMode) {
+                    teardownWebMeetingStreams();
+                    AppState.isWebMeetingMode = false;
+                }
                 AppState.globalStream = stream;
                 await setupAnalyserChain(stream);
             }
@@ -2980,7 +2989,6 @@
             if (mustRotateHidden || mustRotateHard) {
                 shouldSplitNow = true;
             } else if (visible && age >= APP_CONFIG.SEGMENT_SOFT_INTERVAL_MS) {
-                // 4分45秒以降：発話の切れ目（音量が小さい状態）を待つ
                 if (AppState.currentVolumeLevel < 0.04) {
                     if (!AppState.splitQuietSinceMs) {
                         AppState.splitQuietSinceMs = now;
@@ -3089,12 +3097,10 @@
                             audio: true
                         });
                     } catch (dispErr) {
-                        // ユーザーが共有ダイアログをキャンセルした場合
                         KeepAlive.stop();
                         return;
                     }
 
-                    // 共有ダイアログで「音声を共有」のチェックが外れていた場合の検知と確認
                     if (displayStream.getAudioTracks().length === 0) {
                         const proceedMicOnly = confirm(
                             "⚠️ 共有画面の「音声を共有（システム音声またはタブの音声）」がオフになっているため、Web会議の相手の声が録音されません。\n\n" +
@@ -3116,18 +3122,15 @@
             AppState.rawMicStream = stream;
             attachTrackWatchers(stream);
 
-            // 初回権限付与後にマイクの機種名一覧を更新
             refreshMicDeviceList();
 
             if (displayStream && displayStream.getAudioTracks().length > 0) {
-                // Web会議モード：マイク音声＋PC共有音声を合成して録音
                 AppState.isWebMeetingMode = true;
                 AppState.displayStream = displayStream;
                 const mixedStream = await buildWebMeetingMixedStream(stream, displayStream);
                 AppState.globalStream = mixedStream;
                 await setupAnalyserChain(mixedStream);
             } else {
-                // 通常録音：生のマイクストリームを直接渡す安全設計を維持
                 AppState.isWebMeetingMode = false;
                 AppState.displayStream = null;
                 AppState.globalStream = stream;
@@ -3176,7 +3179,6 @@
             startElapsedTimeDisplay();
             startAudioVisualizer();
 
-            // 音声向けコーデック（opus優先）の選択
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                 mimeType = 'audio/webm;codecs=opus';
@@ -3495,6 +3497,7 @@
             if (!window.appController) throw new Error("現場監督のプログラムが読み込まれていません。");
 
             const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
+            const templateType = UI.templateSelect.value || "汎用議事録";
 
             UI.statusText.innerHTML = "音声データを確定保存しています...";
             UI.progressContainer.style.display = "block";
@@ -3502,7 +3505,7 @@
 
             let audioResult;
             try {
-                audioResult = await window.appController.finalizeAudioAndGetResult(meetingName);
+                audioResult = await window.appController.finalizeAudioAndGetResult(meetingName, templateType);
             } catch (audioError) {
                 console.error("❌ 音声確定処理が失敗しました:", audioError);
                 UI.progressTitle.innerHTML = "⚠️ 音声データの確認に失敗しました";
