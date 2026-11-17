@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>らくらく議事録 | Effortless Care DX</title>
     <style>
-        /* ==========================================
-           🎨 デザインテーマ：案A ラグジュアリー・ウォームモダン
-           ・Effortless Care DX のブランドトーン（アンバー・シャンパンゴールド・
-             リーフグリーン）を継承・深化させたプロスタジオ品質のUI。
-           ・全絵文字をカスタムベクターSVGに刷新。
-           ・グラスモーフィズム（すりガラス）＋多層アンビエントシャドウ＋
-             メタリックベゼルによる立体感。
-           ・マイク入力の音量にリアルタイム連動する「オーディオ・コア」＆
-             12バンド・スペクトラムビジュアライザーを搭載。
-           ・録音中は有機EL省電力の「プロスタジオ・ダークモード」へ遷移。
-           ========================================== */
-
         :root {
             --bg-outer-start: #e8e5dd;
             --bg-outer-end: #dad6cc;
@@ -56,7 +44,6 @@
             transition: background 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 🌟 外枠：上質なシャンパンフレーム */
         .app-shell {
             width: 100%;
             max-width: 492px;
@@ -103,7 +90,6 @@
             }
         }
 
-        /* 🌟 背景のアンビエント・オーロラ光（右上：アンバーゴールド、左下：リーフグリーン） */
         .app-container::before {
             content: "";
             position: absolute;
@@ -131,9 +117,6 @@
             transition: background 0.5s ease;
         }
 
-        /* ==========================================
-           🎨 ヘッダー ＆ ブランドロゴ
-           ========================================== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -257,7 +240,6 @@
             box-shadow: 0 0 0 3px rgba(212, 139, 69, 0.12);
         }
 
-        /* 🌟 ドロップダウンメニュー（すりガラス仕様） */
         .header-menu {
             display: none;
             position: absolute;
@@ -327,9 +309,6 @@
             fill: none;
         }
 
-        /* ==========================================
-           ⚠️ 利用環境の注意バナー（iPhoneでSafari以外から開いた場合など）
-           ========================================== */
         .env-warning {
             display: none;
             margin-bottom: 12px;
@@ -349,9 +328,6 @@
             color: #ffd43b;
         }
 
-        /* ==========================================
-           🎨 入力フォーム ＆ 音声入力ボタン（フローティンググラス調）
-           ========================================== */
         .controls-card {
             background: rgba(249, 248, 244, 0.72);
             border: 1px solid rgba(232, 229, 220, 0.85);
@@ -385,7 +361,6 @@
             flex-shrink: 0;
         }
 
-        /* 💻 PC限定：Web会議同時録音トグル */
         .web-meeting-toggle {
             display: flex !important;
             align-items: center;
@@ -418,7 +393,7 @@
             color: #d8dce3 !important;
         }
 
-        input[type="text"], select {
+        input[type="text"], input[type="password"], select {
             width: 100%;
             padding: 12.5px 14px;
             border: 1px solid var(--border-light);
@@ -441,11 +416,14 @@
             background-position: right 13px center;
             cursor: pointer;
         }
-        input[type="text"]::placeholder {
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder {
             color: #b8b5ac;
             font-weight: 400;
         }
-        input[type="text"]:focus, select:focus {
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
             border-color: var(--accent-amber);
             background-color: #ffffff;
             box-shadow: 0 0 0 3.5px rgba(212, 139, 69, 0.15), 0 2px 6px rgba(212, 139, 69, 0.08);
@@ -500,9 +478,6 @@
             100% { box-shadow: 0 0 0 0 rgba(217, 72, 56, 0); }
         }
 
-        /* ==========================================
-           🎨 メイン録音エリア（オーディオ・コア ＆ デジタルタイマー）
-           ========================================== */
         .record-area {
             flex-grow: 1;
             display: flex;
@@ -514,7 +489,6 @@
             z-index: 5;
         }
 
-        /* 🌟 デジタル・スタジオタイムカウンター */
         .timer-display-wrap {
             display: flex;
             flex-direction: column;
@@ -539,7 +513,6 @@
             transform: scale(1.04);
         }
 
-        /* 🌟 オーディオ・コア（多重リング＋メタリックベゼル＋メインボタン） */
         .record-core-stage {
             position: relative;
             width: 158px;
@@ -549,7 +522,6 @@
             align-items: center;
         }
 
-        /* 音声レベルに連動して拡縮するオーラリング（外側・内側） */
         .voice-ring-outer,
         .voice-ring-inner {
             position: absolute;
@@ -575,7 +547,6 @@
             opacity: 1;
         }
 
-        /* メタリック＆ガラスベゼル（外枠リング） */
         .record-bezel {
             width: 128px;
             height: 128px;
@@ -624,7 +595,6 @@
             overflow: hidden;
             padding: 0;
         }
-        /* ボタン上部のガラス光沢ハイライト */
         .record-btn::before {
             content: "";
             position: absolute;
@@ -647,10 +617,6 @@
         }
         .record-btn:hover {
             transform: scale(1.02);
-            box-shadow:
-                0 10px 24px rgba(181, 108, 43, 0.45),
-                inset 0 2px 4px rgba(255, 255, 255, 0.5),
-                inset 0 -3px 6px rgba(90, 45, 10, 0.35);
         }
         .record-btn:active {
             transform: scale(0.94);
@@ -668,7 +634,6 @@
                 inset 0 -3px 6px rgba(70, 10, 5, 0.45);
         }
 
-        /* 🌟 12バンド・リアルタイム音声スペクトラム波形バー */
         .audio-visualizer {
             display: flex;
             align-items: center;
@@ -694,7 +659,6 @@
             box-shadow: 0 0 6px rgba(217, 72, 56, 0.4);
         }
 
-        /* 🌟 ステータスピルバッジ */
         .status-text {
             margin-top: 12px;
             padding: 7px 16px;
@@ -713,7 +677,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
             transition: all 0.3s ease;
         }
-        /* 🌟 マイク停止を検知している間の強調表示 */
         .status-text.mic-lost {
             background: rgba(217, 72, 56, 0.24) !important;
             border-color: #e05a47 !important;
@@ -724,7 +687,6 @@
             50% { opacity: 0.55; }
         }
 
-        /* 🌟 小窓（ピクチャー・イン・ピクチャー）ボタン：録音中のみ表示 */
         .pip-btn {
             display: none;
             margin-top: 10px;
@@ -769,9 +731,6 @@
             line-height: 1.55;
         }
 
-        /* ==========================================
-           🔋 録音中の省電力表示（プロスタジオ・ダークモード）
-           ========================================== */
         body.recording-active {
             background: radial-gradient(circle at 50% 0%, #1c1f26 0%, #0e1014 70%, #090a0d 100%);
         }
@@ -795,9 +754,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        body.recording-active .header-brand-name {
-            color: #6c727f;
-        }
+        body.recording-active .header-brand-name { color: #6c727f; }
         body.recording-active .header-live-badge {
             background: rgba(217, 72, 56, 0.18);
             color: #ff7b6b;
@@ -823,9 +780,7 @@
             border-color: rgba(255, 255, 255, 0.10);
             box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
         }
-        body.recording-active .header-menu-item {
-            color: #d8dce3;
-        }
+        body.recording-active .header-menu-item { color: #d8dce3; }
         body.recording-active .header-menu-item:hover {
             background: rgba(255, 255, 255, 0.07);
             color: #f0ad68;
@@ -839,10 +794,9 @@
             border-color: rgba(255, 255, 255, 0.07);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
-        body.recording-active .input-group label {
-            color: #8b919e;
-        }
+        body.recording-active .input-group label { color: #8b919e; }
         body.recording-active input[type="text"],
+        body.recording-active input[type="password"],
         body.recording-active select {
             background-color: #16181e;
             border-color: rgba(255, 255, 255, 0.09);
@@ -863,25 +817,18 @@
             background: rgba(28, 31, 38, 0.80);
             border-color: rgba(255, 255, 255, 0.08);
         }
-        body.recording-active .progress-title {
-            color: #c5c9d2;
-        }
+        body.recording-active .progress-title { color: #c5c9d2; }
         body.recording-active .wake-lock-warning {
             background: rgba(58, 47, 0, 0.8);
             border-color: #7c5c00;
             color: #ffd43b;
         }
-        body.recording-active .wake-lock-note {
-            color: #686e7a;
-        }
+        body.recording-active .wake-lock-note { color: #686e7a; }
         body.recording-active .app-footer {
             color: #4f545e;
             border-top-color: rgba(255, 255, 255, 0.06);
         }
 
-        /* ==========================================
-           🌑 疑似スリープオーバーレイ（高級スタジオモニター風）
-           ========================================== */
         .pseudo-sleep-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -911,9 +858,7 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             background: rgba(14, 16, 20, 0.5);
         }
-        .pseudo-sleep-overlay.active .sleep-indicator {
-            opacity: 1;
-        }
+        .pseudo-sleep-overlay.active .sleep-indicator { opacity: 1; }
         .sleep-status-badge {
             display: inline-flex;
             align-items: center;
@@ -949,9 +894,6 @@
             50% { opacity: 0.95; }
         }
 
-        /* ==========================================
-           🎨 区間保存LEDドット ＆ パネル群
-           ========================================== */
         .progress-container {
             display: none;
             background: rgba(249, 248, 244, 0.85);
@@ -1072,7 +1014,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 診断情報テキストエリア */
         .diagnostics-textarea {
             width: 100%;
             box-sizing: border-box;
@@ -1094,9 +1035,6 @@
             color: #c5c9d2;
         }
 
-        /* ==========================================
-           🎨 フッター
-           ========================================== */
         .app-footer {
             text-align: center;
             font-size: 10.5px;
@@ -1116,7 +1054,6 @@
 
 <div class="app-shell">
 <div class="app-container">
-    <!-- ヘッダー -->
     <div class="header">
         <div>
             <div class="header-brand-row">
@@ -1173,10 +1110,8 @@
         </div>
     </div>
 
-    <!-- 利用環境の注意（iPhoneでSafari以外から開いた場合などに表示） -->
     <div class="env-warning" id="envWarning"></div>
 
-    <!-- フォームコントロール群 -->
     <div class="controls-card">
         <div class="input-group">
             <label>
@@ -1216,7 +1151,6 @@
             </select>
         </div>
 
-        <!-- 💻 PC限定：Web会議の相手音声＋自分のマイクを同時録音するオプション -->
         <div class="input-group" id="webMeetingGroup" style="display: none;">
             <label class="web-meeting-toggle" for="webMeetingCheckbox">
                 <input type="checkbox" id="webMeetingCheckbox">
@@ -1225,7 +1159,6 @@
         </div>
     </div>
 
-    <!-- メイン録音エリア（オーディオ・コア） -->
     <div class="record-area">
         <div class="timer-display-wrap">
             <div class="elapsed-time" id="elapsedTime">00:00:00</div>
@@ -1246,7 +1179,6 @@
             </div>
         </div>
 
-        <!-- 12バンド・リアルタイム音声スペクトラム -->
         <div class="audio-visualizer" id="audioVisualizer" aria-hidden="true">
             <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
             <span class="vis-bar"></span><span class="vis-bar"></span><span class="vis-bar"></span>
@@ -1256,7 +1188,6 @@
 
         <div class="status-text" id="statusText">タップして録音を開始</div>
 
-        <!-- 🌟 他のアプリで資料を見る前に押すと、この画面が小窓になって録音を続けやすくなる -->
         <button class="pip-btn" id="pipBtn" type="button">小窓にして他のアプリを見る</button>
         <video class="pip-video" id="pipVideo" muted playsinline></video>
 
@@ -1276,7 +1207,6 @@
         <div class="dots-grid" id="dotsGrid"></div>
     </div>
 
-    <!-- お助けモード（自動再開）パネル -->
     <div class="recovery-panel help" id="recoveryPanel">
         <h4>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -1289,9 +1219,9 @@
             前回の録音状況を確認しています...
         </div>
         <button class="recovery-btn" id="recoveryActionBtn" style="display:none;"></button>
+        <button class="recovery-btn" id="downloadLeftoverBtn" style="display:none;">端末内の未送信音声をダウンロード（非常用）</button>
     </div>
 
-    <!-- 診断情報パネル -->
     <div class="recovery-panel diagnostics" id="diagnosticsPanel">
         <h4>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -1300,14 +1230,13 @@
             診断情報（AIへの共有用）
         </h4>
         <div style="font-size: 12px; color: #868e96; margin-bottom: 10px; line-height: 1.6;">
-            通信エラーやマイクの停止・復旧、処理結果（finishReason・トークン数等）の記録です。<br>
+            通信エラーやマイクの停止・復旧、区間の区切り方などの記録です。<br>
             「途中で止まった」等の不具合報告の際は、このテキストをそのままコピーして共有してください。
         </div>
         <textarea class="diagnostics-textarea" id="diagnosticsText" readonly placeholder="通信エラーやマイクの停止などが発生すると、ここに診断情報が表示されます。"></textarea>
         <button class="recovery-btn" id="copyDiagnosticsBtn">診断情報をクリップボードにコピー</button>
     </div>
 
-    <!-- システム設定パネル -->
     <div class="recovery-panel settings" id="settingsPanel">
         <h4>
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -1316,26 +1245,27 @@
             </svg>
             システム設定
         </h4>
-        <!-- 💻 PCでマイクが複数接続されている場合のみ自動表示 -->
         <div class="input-group" id="micSelectGroup" style="display: none; margin-bottom: 14px;">
             <label style="font-size: 12px;">使用するマイク（PC接続時）</label>
             <select id="micSelect">
                 <option value="">既定のマイク（自動）</option>
             </select>
         </div>
-        <div class="input-group" style="margin-bottom: 0;">
+        <div class="input-group" style="margin-bottom: 14px;">
             <label style="font-size: 12px;">GAS ウェブアプリURL</label>
             <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="input-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px;">アクセスキー（任意・GAS側で設定した場合のみ）</label>
+            <input type="password" id="authTokenInput" placeholder="未設定の場合は空欄">
             <button class="recovery-btn" id="saveSettingsBtn">設定を保存して閉じる</button>
         </div>
     </div>
 
-    <!-- 著作権表記フッター -->
     <div class="app-footer">© 2026 Effortless Care DX</div>
 </div>
 </div>
 
-<!-- 🌑 疑似スリープオーバーレイ：録音中、一定時間操作がないと表示される -->
 <div class="pseudo-sleep-overlay" id="pseudoSleepOverlay">
     <div class="sleep-indicator">
         <div class="sleep-status-badge">
@@ -1347,16 +1277,12 @@
     </div>
 </div>
 
-<!-- キャッシュ強制回避用のバージョン記述 -->
-<script src="js/recorder-controller.js?v=6.1"
+<script src="js/recorder-controller.js?v=6.2"
     onload="console.log('✅ recorder-controller.js 読み込み成功');"
     onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
 ></script>
 
 <script>
-    // ==========================================
-    // 🎨 カスタムSVGアイコン定義（脱・絵文字）
-    // ==========================================
     const SVG_ICONS = {
         mic: `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
@@ -1369,40 +1295,34 @@
                </svg>`
     };
 
-    // ==========================================
-    // 🔧 設定と状態管理
-    // ==========================================
     const APP_CONFIG = {
-        SEGMENT_SOFT_INTERVAL_MS: 285000, // 4分45秒以降、会話の切れ目（無音）を探して区切る
-        SEGMENT_INTERVAL_MS: 300000,      // 5分ごとに区切って保存
-        SEGMENT_HARD_INTERVAL_MS: 330000, // 最長5分30秒で必ず区切る（無音がなくても分割）
-        SPLIT_SILENCE_MS: 800,            // 0.8秒以上の無音を会話の切れ目とみなす
-        LEVEL_SAMPLE_INTERVAL_MS: 200,    // 音量を測る間隔
-        LEVEL_HISTORY_SIZE: 150,          // 音量の履歴の件数（200ms×150＝直近30秒）
-        SPLIT_ABSOLUTE_SILENCE_DB: -70,   // これ以下は無条件に「静か」とみなす
-        SPLIT_MIN_DYNAMIC_RANGE_DB: 12,   // 直近30秒の音量差がこれ未満なら、切れ目の判定をしない（時間で区切る）
-        LOW_VOLUME_GUIDE_MS: 30000,       // 小音量が30秒続いたら画面に控えめに案内を出す
-        AUDIO_BITS_PER_SECOND: 64000,     // 音声向けビットレート（64kbps）
-        // 画面が裏にある間は区切りを保留するが、この倍率を超えたら裏でも区切る
-        // （1ファイルが大きくなりすぎるのを防ぐ。3倍＝最長15分）
+        SEGMENT_SOFT_INTERVAL_MS: 285000,
+        SEGMENT_INTERVAL_MS: 300000,
+        SEGMENT_HARD_INTERVAL_MS: 330000,
+        SPLIT_SILENCE_MS: 800,
+        LEVEL_SAMPLE_INTERVAL_MS: 200,
+        LEVEL_HISTORY_SIZE: 150,
+        SPLIT_ABSOLUTE_SILENCE_DB: -70,
+        SPLIT_MIN_DYNAMIC_RANGE_DB: 12,
+        LOW_VOLUME_GUIDE_MS: 30000,
+        AUDIO_BITS_PER_SECOND: 64000,
         HIDDEN_ROTATION_FACTOR: 3,
-        PSEUDO_SLEEP_DELAY_MS: 15000,     // 録音中、15秒操作がなければ疑似スリープ表示
-        DATA_STALL_MS: 10000,             // 録音データがこの時間届かなければ停止とみなす
-        SILENCE_DETECT_MS: 20000,         // 完全な無音がこの時間続いたらマイク停止の可能性ありとみなす
-        SILENCE_RECOVER_INTERVAL_MS: 120000, // 無音を理由にしたマイク取り直しの最短間隔
-        MUTE_GRACE_MS: 5000,              // ミュートがこの時間続いたらマイクを取り直す
-        RECOVER_MIN_INTERVAL_MS: 10000,   // マイク取り直しの最短間隔
-        MIC_REQUEST_TIMEOUT_MS: 8000,     // マイク取り直しの待ち時間の上限
-        // 🌟 バックグラウンドで止められにくくする工夫（不具合が出る端末では false にして切る）
-        KEEPALIVE_SILENT_AUDIO: true,     // 録音中、無音の音声を再生し続ける（「再生中のページ」として扱わせる）
-        KEEPALIVE_PIP: true               // 「小窓にして他のアプリを見る」ボタンを表示する
+        PSEUDO_SLEEP_DELAY_MS: 15000,
+        DATA_STALL_MS: 10000,
+        SILENCE_DETECT_MS: 20000,
+        SILENCE_RECOVER_INTERVAL_MS: 120000,
+        MUTE_GRACE_MS: 5000,
+        RECOVER_MIN_INTERVAL_MS: 10000,
+        MIC_REQUEST_TIMEOUT_MS: 8000,
+        KEEPALIVE_SILENT_AUDIO: true,
+        KEEPALIVE_PIP: true
     };
 
     const AppState = {
         isRecording: false,
         isStopping: false,
         recorder: null,
-        currentSegment: null,           // 録音中の区間 { index, sessionId, mimeType, parts, partSeq, finalized, startedAt }
+        currentSegment: null,
         globalStream: null,
         chunkIndex: 0,
         mimeType: 'audio/webm',
@@ -1415,45 +1335,41 @@
         isPseudoSleeping: false,
         audioSendQueue: Promise.resolve(),
         isSegmentCycleActive: false,
-        suppressAutoRestart: false,     // マイク取り直し中は、録音停止後の自動再開を止める
-        // 🌟 通信失敗したチャンクを保持し、画面復帰時・終了時に自動再送するキュー
+        suppressAutoRestart: false,
         pendingRetrySegments: [],
-        // 🌟 マイクの健全性の監視
-        lastDataAt: 0,                  // 最後に録音データが届いた時刻
-        micLostAtMs: 0,                 // マイク停止を検知した時刻（0なら正常）
+        lastDataAt: 0,
+        micLostAtMs: 0,
         micLostReason: "",
-        micGaps: [],                    // 途切れた時間帯 [{ fromSec, toSec, reason }]
+        micGaps: [],
         isRecoveringMic: false,
         lastRecoverAttemptAt: 0,
         silentSinceMs: 0,
         lastSilentRecoverAt: 0,
         silenceBuffer: null,
         isLeftoverRecovering: false,
-        // 🌟 Web Audio API（リアルタイム波形解析＆無音検知用。通常録音のデータ自体には使わない）
         audioContext: null,
         rawMicStream: null,
         audioProcessingNodes: null,
         analyserNode: null,
         silenceAnalyserNode: null,
         visualizerRafId: null,
-        // 🌟 スマート区間分割＆小声ガイド用の音量状態
         currentVolumeLevel: 0,
-        volumeLevelValid: false,        // 音量を測れているか（AudioContextが動いているか）
-        levelSamplerId: null,           // 音量の定期測定（0.2秒ごと）
+        volumeLevelValid: false,
+        levelSamplerId: null,
         levelBuffer: null,
-        levelAnalyserNode: null,        // 生の入力の音量（dB）を測る解析ノード
+        levelAnalyserNode: null,
         levelTimeBuffer: null,
-        levelHistory: [],               // 直近30秒ぶんの音量（dB）
+        levelHistory: [],
         currentLevelDb: -100,
-        splitStats: { quiet: 0, forced: 0 }, // 区切り方の内訳（無音で区切った回数／時間で区切った回数）
+        splitStats: { quiet: 0, forced: 0 },
         leftoverRetryTimerId: null,
         splitQuietSinceMs: 0,
         lowVolumeSinceMs: 0,
         isLowVolume: false,
-        // 💻 PC Web会議モード（相手音声＋マイク合成）用
         isWebMeetingMode: false,
         displayStream: null,
-        mixAudioContext: null
+        mixAudioContext: null,
+        nameSpeechRecognition: null
     };
 
     const UI = {
@@ -1476,11 +1392,13 @@
         recoveryPanel: document.getElementById('recoveryPanel'),
         recoveryStatusText: document.getElementById('recoveryStatusText'),
         recoveryActionBtn: document.getElementById('recoveryActionBtn'),
+        downloadLeftoverBtn: document.getElementById('downloadLeftoverBtn'),
         settingsBtn: document.getElementById('settingsBtn'),
         settingsPanel: document.getElementById('settingsPanel'),
         micSelectGroup: document.getElementById('micSelectGroup'),
         micSelect: document.getElementById('micSelect'),
         gasUrlInput: document.getElementById('gasUrlInput'),
+        authTokenInput: document.getElementById('authTokenInput'),
         saveSettingsBtn: document.getElementById('saveSettingsBtn'),
         showDiagnosticsBtn: document.getElementById('showDiagnosticsBtn'),
         diagnosticsPanel: document.getElementById('diagnosticsPanel'),
@@ -1505,7 +1423,15 @@
         "start-failed": "録音を開始できなかった"
     };
 
-    // 💻 PCブラウザ判定（スマホ・タブレットではPC向けオプションを非表示にする）
+    function escapeHtml(str) {
+        return String(str === null || str === undefined ? "" : str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     function isDesktopBrowser() {
         const ua = navigator.userAgent || "";
         const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(ua) ||
@@ -1546,7 +1472,6 @@
                 };
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => {
-                    console.warn("⚠️ 端末内の一時保存（IndexedDB）を開けませんでした。メモリのみで動作します。");
                     this.available = false;
                     resolve(null);
                 };
@@ -1641,7 +1566,7 @@
     };
 
     // ==========================================
-    // 🛡️ バックグラウンドで止められにくくする工夫（KeepAlive）
+    // 🛡️ KeepAlive（無音再生 ＋ ピクチャー・イン・ピクチャー）
     // ==========================================
     const KeepAlive = {
         audioEl: null,
@@ -1662,15 +1587,15 @@
             writeStr(8, "WAVE");
             writeStr(12, "fmt ");
             view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);          // PCM
-            view.setUint16(22, 1, true);          // モノラル
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
             view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate, true); // バイト/秒
+            view.setUint32(28, sampleRate, true);
             view.setUint16(32, 1, true);
-            view.setUint16(34, 8, true);          // 8bit
+            view.setUint16(34, 8, true);
             writeStr(36, "data");
             view.setUint32(40, numSamples, true);
-            new Uint8Array(buffer, 44).fill(128); // 8bitの無音は128
+            new Uint8Array(buffer, 44).fill(128);
             return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
         },
 
@@ -1688,7 +1613,7 @@
                 }
                 const playing = this.audioEl.play();
                 if (playing && playing.catch) {
-                    playing.catch((e) => console.warn("⚠️ 無音再生を開始できませんでした（録音には影響ありません）:", e));
+                    playing.catch(() => {});
                 }
 
                 if ("mediaSession" in navigator) {
@@ -1701,14 +1626,12 @@
                         }
                         const keepPlaying = () => { this.ensureAudioPlaying(); };
                         ["play", "pause", "stop"].forEach((action) => {
-                            try { navigator.mediaSession.setActionHandler(action, keepPlaying); } catch (e) { /* 未対応 */ }
+                            try { navigator.mediaSession.setActionHandler(action, keepPlaying); } catch (e) { /* 無視 */ }
                         });
                         navigator.mediaSession.playbackState = "playing";
                     } catch (e) { /* 無視 */ }
                 }
-            } catch (e) {
-                console.warn("⚠️ 無音再生の準備に失敗しました（録音には影響ありません）:", e);
-            }
+            } catch (e) { /* 無視 */ }
         },
 
         ensureAudioPlaying: function() {
@@ -1728,7 +1651,7 @@
                     navigator.mediaSession.playbackState = "none";
                     navigator.mediaSession.metadata = null;
                     ["play", "pause", "stop"].forEach((action) => {
-                        try { navigator.mediaSession.setActionHandler(action, null); } catch (e) { /* 未対応 */ }
+                        try { navigator.mediaSession.setActionHandler(action, null); } catch (e) { /* 無視 */ }
                     });
                 } catch (e) { /* 無視 */ }
             }
@@ -1802,7 +1725,6 @@
                     UI.pipVideo.webkitSetPresentationMode("picture-in-picture");
                 }
             } catch (e) {
-                console.warn("⚠️ 小窓表示を開始できませんでした:", e);
                 logDiag("小窓表示の開始に失敗", [`内容: ${e && e.message ? e.message : e}`]);
                 alert("この端末・ブラウザでは、小窓表示を開始できませんでした。\n録音はそのまま続いています。");
             }
@@ -1831,15 +1753,6 @@
         }
     };
 
-    // ==========================================
-    // 🩺 診断情報への記録（マイクの停止・復旧など）
-    // ==========================================
-    // ==========================================
-    // 📝 録音の注記（途切れた時間帯など）の一時保存
-    //   録音の確定時にGASへ送り、文字起こし・議事録の冒頭に注記として載せる。
-    //   確定が後回しになった場合（未送信の音声がある場合など）にも失わないよう、
-    //   端末内（localStorage）に控えておく。
-    // ==========================================
     const RECORDING_NOTES_KEY_PREFIX = "recorder_notes_";
 
     function saveRecordingNotesLocal(sessionId, notes) {
@@ -1886,9 +1799,6 @@
         return `${h}:${m}:${s}`;
     }
 
-    // ==========================================
-    // ⚠️ 利用環境の確認 ＆ PC向けUIの初期化
-    // ==========================================
     function showEnvironmentWarningIfNeeded() {
         if (!UI.envWarning) return;
         const ua = navigator.userAgent || "";
@@ -1910,7 +1820,6 @@
         }
     }
 
-    // 💻 PCブラウザの場合のみ、Web会議モード選択とマイク選択（複数時）を有効化する
     async function initDesktopOptions() {
         if (!isDesktopBrowser()) return;
 
@@ -1934,7 +1843,6 @@
             const devices = await navigator.mediaDevices.enumerateDevices();
             const mics = devices.filter(d => d.kind === "audioinput");
 
-            // マイクが1台以下なら選択不要のため非表示のままにする
             if (mics.length <= 1) {
                 UI.micSelectGroup.style.display = "none";
                 return;
@@ -1960,22 +1868,20 @@
             }
 
             UI.micSelectGroup.style.display = "block";
-        } catch (e) {
-            console.warn("⚠️ マイク一覧の取得をスキップしました:", e);
-        }
+        } catch (e) { /* 無視 */ }
     }
 
     // ==========================================
     // 💡 イベントの紐付け
     // ==========================================
     function bindEvents() {
-        // 会議名の音声入力
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.lang = 'ja-JP';
             recognition.interimResults = false;
             recognition.continuous = false;
+            AppState.nameSpeechRecognition = recognition;
 
             UI.meetingNameMicBtn.addEventListener('click', () => {
                 if (AppState.isRecording || AppState.isStopping) {
@@ -1988,7 +1894,6 @@
             recognition.onstart = () => {
                 UI.meetingNameMicBtn.classList.add('listening');
                 UI.meetingNameInput.placeholder = "お話しください...";
-                UI.meetingNameInput.value = "";
             };
 
             recognition.onresult = (event) => {
@@ -2009,7 +1914,6 @@
             UI.meetingNameMicBtn.style.display = 'none';
         }
 
-        // パネル制御（お助けモード・設定・診断情報の3枚は排他表示）
         const ALL_PANELS = [
             { panel: UI.recoveryPanel, btn: UI.showRecoveryBtn },
             { panel: UI.settingsPanel, btn: UI.settingsBtn },
@@ -2024,7 +1928,6 @@
 
         function togglePanel(targetPanel, targetBtn, onOpen) {
             const isCurrentlyOpen = targetPanel.style.display === 'block';
-
             closeHeaderMenu();
 
             ALL_PANELS.forEach(({ panel, btn }) => {
@@ -2072,6 +1975,7 @@
         UI.settingsBtn.addEventListener('click', () => {
             togglePanel(UI.settingsPanel, UI.settingsBtn, () => {
                 UI.gasUrlInput.value = window.appController ? window.appController.gasUrl : "";
+                UI.authTokenInput.value = window.appController ? (window.appController.authToken || "") : "";
                 refreshMicDeviceList();
             });
         });
@@ -2089,9 +1993,18 @@
 
         UI.saveSettingsBtn.addEventListener('click', () => {
             const url = UI.gasUrlInput.value.trim();
-            if(url) {
+            const token = UI.authTokenInput.value.trim();
+            if (url) {
                 localStorage.setItem('saved_gas_url', url);
-                if(window.appController) window.appController.gasUrl = url;
+                if (token) {
+                    localStorage.setItem('saved_auth_token', token);
+                } else {
+                    localStorage.removeItem('saved_auth_token');
+                }
+                if (window.appController) {
+                    window.appController.gasUrl = url;
+                    window.appController.authToken = token;
+                }
                 alert("設定を保存しました！");
                 UI.settingsPanel.style.display = 'none';
                 UI.settingsBtn.classList.remove('active-panel');
@@ -2132,6 +2045,10 @@
             });
         }
 
+        if (UI.downloadLeftoverBtn) {
+            UI.downloadLeftoverBtn.addEventListener('click', downloadLeftoverAudioFiles);
+        }
+
         UI.mainRecordBtn.addEventListener('click', handleRecordButtonClick);
 
         if (UI.pipBtn) {
@@ -2151,41 +2068,82 @@
     // ==========================================
     async function checkRecoveryStatus() {
         UI.recoveryActionBtn.style.display = "none";
+        UI.downloadLeftoverBtn.style.display = "none";
 
-        if (!window.appController || !window.appController.hasPendingSession()) {
+        if (!window.appController || !window.appController.gasUrl) {
+            UI.recoveryStatusText.innerHTML =
+                "⚠️ GASのURLが設定されていないため、状態を確認できません。先に設定を行ってください。";
+            await updateDownloadLeftoverButtonVisibility();
+            return;
+        }
+
+        UI.recoveryStatusText.innerHTML = "端末内の未送信音声と前回の録音状態を確認しています...";
+
+        // 端末内に未送信分があれば、確定判定の前にまず送信を完了させる
+        await recoverLeftoverSegments();
+
+        if (!window.appController.hasPendingSession()) {
             UI.recoveryStatusText.innerHTML =
                 "再開が必要な前回の録音は見つかりませんでした。<br>" +
                 "（すべて正常に完了しているか、まだ録音を行っていません）";
+            await updateDownloadLeftoverButtonVisibility();
             return;
         }
-
-        if (!window.appController.gasUrl) {
-            UI.recoveryStatusText.innerHTML =
-                "⚠️ GASのURLが設定されていないため、状態を確認できません。先に設定を行ってください。";
-            return;
-        }
-
-        UI.recoveryStatusText.innerHTML = "前回の録音の状態をサーバーに問い合わせています...";
 
         try {
             const statusResult = await window.appController.checkSessionStatus();
             renderRecoveryStatus(statusResult);
         } catch (err) {
-            console.error("❌ お助けモード：状態確認に失敗しました", err);
             UI.recoveryStatusText.innerHTML =
                 "⚠️ 状態の確認中にエラーが発生しました。通信環境をご確認のうえ、" +
-                "もう一度「手動再開」を開き直してください。<br>詳細: " + err.message;
+                "もう一度「手動再開」を開き直してください。<br>詳細: " + escapeHtml(err.message);
         }
+        await updateDownloadLeftoverButtonVisibility();
+    }
+
+    async function updateDownloadLeftoverButtonVisibility() {
+        if (!UI.downloadLeftoverBtn || !SegmentStore.available) return;
+        const metas = await SegmentStore.listMetas();
+        UI.downloadLeftoverBtn.style.display = metas.length > 0 ? "block" : "none";
+    }
+
+    async function downloadLeftoverAudioFiles() {
+        if (!SegmentStore.available) return;
+        const metas = await SegmentStore.listMetas();
+        if (metas.length === 0) {
+            alert("端末内に未送信の音声はありませんでした。");
+            return;
+        }
+        metas.sort((a, b) => a.segmentIndex - b.segmentIndex);
+        let count = 0;
+        for (let i = 0; i < metas.length; i++) {
+            const meta = metas[i];
+            const blob = await SegmentStore.getSegmentBlob(meta.sessionId, meta.segmentIndex, meta.mimeType);
+            if (!blob || blob.size === 0) continue;
+            const ext = (meta.mimeType || "").indexOf("mp4") >= 0 ? "mp4" : "webm";
+            const fileName = `${meta.meetingName || "録音"}_区間${meta.segmentIndex + 1}.${ext}`;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            count++;
+        }
+        alert(`${count}件の音声ファイルをダウンロードしました。`);
     }
 
     function renderRecoveryStatus(statusResult) {
-        const meetingName = UI.meetingNameInput.value.trim() || "無題の会議";
-        const templateType = UI.templateSelect.value;
+        const state = window.appController.state;
+        const meetingName = UI.meetingNameInput.value.trim() || state.meetingName || "無題の会議";
+        const templateType = UI.templateSelect.value || state.templateType || "汎用議事録";
 
         if (statusResult.status === "audio_saved") {
             UI.recoveryStatusText.innerHTML =
                 `✅ <b>音声データは専用フォルダに保存済みです。</b>` +
-                `（フォルダ名: ${statusResult.audioFileName}、ファイル数: ${statusResult.fileCount}件）<br>` +
+                `（フォルダ名: ${escapeHtml(statusResult.audioFileName)}、ファイル数: ${escapeHtml(statusResult.fileCount)}件）<br>` +
                 `音声データ自体は失われていません。<br>` +
                 `録音を確定し、文字起こし・議事録の生成をバックグラウンドで再開します。`;
             UI.recoveryActionBtn.textContent = "録音を確定して、バックグラウンド処理を開始する";
@@ -2193,7 +2151,6 @@
             UI.recoveryActionBtn.onclick = () => runRecoveryTranscriptPending(
                 statusResult.audioFolderId, meetingName, templateType
             );
-
         } else {
             UI.recoveryStatusText.innerHTML =
                 "⚠️ サーバー側にも、このセッションに対応する録音データが見つかりませんでした。<br>" +
@@ -2205,8 +2162,15 @@
         UI.recoveryActionBtn.disabled = true;
         UI.recoveryStatusText.innerHTML = "音声データを確定し、バックグラウンド処理に引き継いでいます...";
 
+        const sessionId = window.appController.state.sessionId;
+        const savedNotes = sessionId ? loadRecordingNotesLocal(sessionId) : null;
+
         try {
-            const result = await window.appController.finalizeAudioAndGetResult(meetingName, templateType);
+            const result = await window.appController.finalizeAudioAndGetResult(
+                meetingName,
+                templateType,
+                savedNotes || { gaps: [], abnormalEnd: true }
+            );
 
             if (result && result.audioFinalized === false) {
                 UI.recoveryStatusText.innerHTML =
@@ -2215,6 +2179,7 @@
                 return;
             }
 
+            if (sessionId) removeRecordingNotesLocal(sessionId);
             window.appController.clearState();
 
             UI.recoveryStatusText.innerHTML =
@@ -2223,133 +2188,146 @@
                 "数分後に、Googleドライブの「レコーダー/議事録等」フォルダをご確認ください。";
             UI.recoveryActionBtn.style.display = "none";
         } catch (err) {
-            console.error("❌ お助けモード：音声データの確定に失敗しました", err);
             UI.recoveryStatusText.innerHTML =
-                "⚠️ 音声データの確定に失敗しました。もう一度お試しください。<br>詳細: " + err.message;
+                "⚠️ 音声データの確定に失敗しました。もう一度お試しください。<br>詳細: " + escapeHtml(err.message);
         } finally {
             UI.recoveryActionBtn.disabled = false;
         }
     }
 
     // ==========================================
-    // 💾 端末内に残った未送信の録音を、ドライブへ送る
+    // 💾 端末内に残った未送信の録音＆未確定の録音を、ドライブへ送る
     // ==========================================
     async function recoverLeftoverSegments() {
         if (AppState.isLeftoverRecovering) return;
-        if (!SegmentStore.available) return;
         if (!window.appController || !window.appController.gasUrl) return;
         if (navigator.onLine === false) return;
 
         AppState.isLeftoverRecovering = true;
         let hasRemaining = false;
         try {
-            const metas = await SegmentStore.listMetas();
-            if (metas.length === 0) return;
-
             const activeSessionId = (AppState.isRecording || AppState.isStopping)
                 ? window.appController.state.sessionId
                 : null;
 
-            const bySession = {};
-            metas.forEach((meta) => {
-                if (meta.sessionId === activeSessionId) return;
-                if (!bySession[meta.sessionId]) bySession[meta.sessionId] = [];
-                bySession[meta.sessionId].push(meta);
-            });
+            if (SegmentStore.available) {
+                const metas = await SegmentStore.listMetas();
+                const bySession = {};
+                metas.forEach((meta) => {
+                    if (meta.sessionId === activeSessionId) return;
+                    if (!bySession[meta.sessionId]) bySession[meta.sessionId] = [];
+                    bySession[meta.sessionId].push(meta);
+                });
 
-            const sessionIds = Object.keys(bySession);
-            for (let s = 0; s < sessionIds.length; s++) {
-                const sessionId = sessionIds[s];
-                const list = bySession[sessionId].sort((a, b) => a.segmentIndex - b.segmentIndex);
-                const lastMeta = list[list.length - 1];
-                let allSent = true;
-                let sentCount = 0;
+                const sessionIds = Object.keys(bySession);
+                for (let s = 0; s < sessionIds.length; s++) {
+                    const sessionId = sessionIds[s];
+                    const list = bySession[sessionId].sort((a, b) => a.segmentIndex - b.segmentIndex);
+                    const lastMeta = list[list.length - 1];
+                    let allSent = true;
+                    let sentCount = 0;
 
-                for (let i = 0; i < list.length; i++) {
-                    const meta = list[i];
+                    for (let i = 0; i < list.length; i++) {
+                        const meta = list[i];
 
-                    if ((AppState.isRecording || AppState.isStopping) &&
-                        window.appController.state.sessionId === sessionId) {
-                        allSent = false;
-                        break;
+                        if ((AppState.isRecording || AppState.isStopping) &&
+                            window.appController.state.sessionId === sessionId) {
+                            allSent = false;
+                            break;
+                        }
+
+                        const blob = await SegmentStore.getSegmentBlob(sessionId, meta.segmentIndex, meta.mimeType);
+                        if (!blob || blob.size === 0) {
+                            await SegmentStore.deleteSegment(sessionId, meta.segmentIndex);
+                            continue;
+                        }
+
+                        try {
+                            const base64 = await blobToBase64(blob);
+                            await window.appController.callGasApi({
+                                action: "appendAudioChunk",
+                                sessionId: sessionId,
+                                audioData: base64,
+                                mimeType: meta.mimeType || "audio/webm",
+                                meetingName: meta.meetingName || "無題の会議",
+                                chunkIndex: meta.segmentIndex,
+                                templateType: meta.templateType || "汎用議事録"
+                            });
+                            await SegmentStore.deleteSegment(sessionId, meta.segmentIndex);
+                            sentCount++;
+                        } catch (err) {
+                            allSent = false;
+                            break;
+                        }
                     }
 
-                    const blob = await SegmentStore.getSegmentBlob(sessionId, meta.segmentIndex, meta.mimeType);
-                    if (!blob || blob.size === 0) {
-                        await SegmentStore.deleteSegment(sessionId, meta.segmentIndex);
+                    if (!allSent) {
+                        hasRemaining = true;
                         continue;
                     }
+                    if (sentCount === 0) continue;
+
+                    const savedNotes = loadRecordingNotesLocal(sessionId);
+                    const notesForFinalize = savedNotes || { gaps: [], abnormalEnd: true };
 
                     try {
-                        const base64 = await blobToBase64(blob);
                         await window.appController.callGasApi({
-                            action: "appendAudioChunk",
+                            action: "finalizeAudio",
                             sessionId: sessionId,
-                            audioData: base64,
-                            mimeType: meta.mimeType || "audio/webm",
-                            meetingName: meta.meetingName || "無題の会議",
-                            chunkIndex: meta.segmentIndex,
-                            templateType: meta.templateType || "汎用議事録"
+                            meetingName: lastMeta.meetingName || "無題の会議",
+                            mimeType: lastMeta.mimeType || "audio/webm",
+                            templateType: lastMeta.templateType || "汎用議事録",
+                            recordingNotes: notesForFinalize
                         });
-                        await SegmentStore.deleteSegment(sessionId, meta.segmentIndex);
-                        sentCount++;
+                        removeRecordingNotesLocal(sessionId);
+
+                        if (!AppState.isRecording && !AppState.isStopping &&
+                            window.appController.state.sessionId === sessionId) {
+                            window.appController.clearState();
+                        }
+
+                        logDiag("未送信だった録音の復旧", [
+                            `会議名: ${lastMeta.meetingName || "無題の会議"}`,
+                            `送信した区間数: ${sentCount}`
+                        ]);
+
+                        if (!AppState.isRecording && !AppState.isStopping) {
+                            alert(
+                                "前回の録音で未送信だった音声（" + sentCount + "区間）を、ドライブへ保存しました。\n" +
+                                "会議名：" + (lastMeta.meetingName || "無題の会議") + "\n\n" +
+                                "文字起こし・議事録は、バックグラウンドで自動的に作成されます。"
+                            );
+                        }
                     } catch (err) {
-                        console.warn(`⚠️ 未送信の録音（区間${meta.segmentIndex + 1}）の送信に失敗しました。次回に再試行します。`, err);
-                        allSent = false;
-                        break;
+                        hasRemaining = true;
                     }
                 }
+            }
 
-                if (!allSent) {
-                    hasRemaining = true;
-                    continue;
-                }
-                if (sentCount === 0) continue;
-
-                // 停止操作まで済んでいた録音は、控えておいた注記（途切れた時間帯）を付ける。
-                // 控えがない場合は、停止操作の前にアプリが閉じられたものとして扱う。
-                const savedNotes = loadRecordingNotesLocal(sessionId);
-                const notesForFinalize = savedNotes || { gaps: [], abnormalEnd: true };
-
+            // チャンク自体は全送信済みだが、最後の finalizeAudio だけ失敗して残っていた場合を救済
+            const st = window.appController.state;
+            if (!AppState.isRecording && !AppState.isStopping &&
+                st.pendingFinalize && !st.audioFinalized && st.sessionId !== activeSessionId) {
+                const savedNotes = loadRecordingNotesLocal(st.sessionId);
                 try {
-                    await window.appController.callGasApi({
-                        action: "finalizeAudio",
-                        sessionId: sessionId,
-                        meetingName: lastMeta.meetingName || "無題の会議",
-                        mimeType: lastMeta.mimeType || "audio/webm",
-                        templateType: lastMeta.templateType || "汎用議事録",
-                        recordingNotes: notesForFinalize
-                    });
-                    removeRecordingNotesLocal(sessionId);
-
-                    if (!AppState.isRecording && !AppState.isStopping &&
-                        window.appController.state.sessionId === sessionId) {
+                    const res = await window.appController.finalizeAudioAndGetResult(
+                        st.meetingName,
+                        st.templateType,
+                        savedNotes || { gaps: [], abnormalEnd: true }
+                    );
+                    if (res && res.audioFinalized !== false) {
+                        removeRecordingNotesLocal(st.sessionId);
                         window.appController.clearState();
-                    }
-
-                    logDiag("未送信だった録音の復旧", [
-                        `会議名: ${lastMeta.meetingName || "無題の会議"}`,
-                        `送信した区間数: ${sentCount}`
-                    ]);
-
-                    if (!AppState.isRecording && !AppState.isStopping) {
-                        alert(
-                            "前回の録音で未送信だった音声（" + sentCount + "区間）を、ドライブへ保存しました。\n" +
-                            "会議名：" + (lastMeta.meetingName || "無題の会議") + "\n\n" +
-                            "文字起こし・議事録は、バックグラウンドで自動的に作成されます。"
-                        );
+                        logDiag("未確定だった録音の自動確定", [`会議名: ${st.meetingName}`]);
                     }
                 } catch (err) {
-                    console.warn("⚠️ 未送信だった録音の確定に失敗しました。「手動再開」から確定できます。", err);
+                    hasRemaining = true;
                 }
             }
         } catch (err) {
-            console.warn("⚠️ 未送信の録音の確認中にエラーが発生しました:", err);
             hasRemaining = true;
         } finally {
             AppState.isLeftoverRecovering = false;
-
-            // 送れなかった分が残っている場合は、1分後にもう一度試す（画面を開いている間）
             if (hasRemaining && !AppState.leftoverRetryTimerId) {
                 AppState.leftoverRetryTimerId = setTimeout(() => {
                     AppState.leftoverRetryTimerId = null;
@@ -2360,11 +2338,10 @@
     }
 
     // ==========================================
-    // 🔆 画面スリープ防止（Wake Lock API）＆ 他アプリ復帰処理
+    // 🔆 Wake Lock API ＆ 復帰処理
     // ==========================================
     async function requestWakeLock() {
         if (!AppState.wakeLockSupported) {
-            console.warn("⚠️ この端末・ブラウザはWake Lock APIに対応していません。");
             showWakeLockWarning();
             return;
         }
@@ -2374,17 +2351,14 @@
         try {
             const lock = await navigator.wakeLock.request('screen');
             AppState.wakeLock = lock;
-            console.log("🔆 Wake Lock取得成功：画面スリープを防止します。");
             hideWakeLockWarning();
 
             lock.addEventListener('release', () => {
-                console.warn("⚠️ Wake Lockが解除されました（他アプリ切り替え等の可能性があります）。");
                 if (AppState.wakeLock === lock) {
                     AppState.wakeLock = null;
                 }
             });
         } catch (err) {
-            console.warn("⚠️ Wake Lockの取得に失敗しました:", err);
             if (document.visibilityState === 'visible') {
                 showWakeLockWarning();
             }
@@ -2395,7 +2369,6 @@
         if (AppState.wakeLock) {
             AppState.wakeLock.release().catch(() => {});
             AppState.wakeLock = null;
-            console.log("🔆 Wake Lockを解放しました。");
         }
         hideWakeLockWarning();
     }
@@ -2405,19 +2378,13 @@
         if (!AppState.isRecording && !AppState.isStopping) return;
 
         if (AppState.audioContext && AppState.audioContext.state !== 'running') {
-            try {
-                await AppState.audioContext.resume();
-                console.log("🎚️ 画面復帰に伴い AudioContext を再開しました:", AppState.audioContext.state);
-            } catch (e) {
-                console.warn("⚠️ AudioContext resume失敗:", e);
-            }
+            AppState.audioContext.resume().catch(() => {});
         }
         if (AppState.mixAudioContext && AppState.mixAudioContext.state !== 'running') {
             AppState.mixAudioContext.resume().catch(() => {});
         }
 
         if (!AppState.wakeLock) {
-            console.log("🔆 画面が再アクティブ化されました。Wake Lockの再取得を試みます。");
             await requestWakeLock();
         }
 
@@ -2428,7 +2395,6 @@
                 AppState.lastRecoverAttemptAt = 0;
                 recoverMicrophone(AppState.micLostReason || (track && track.muted ? 'muted' : 'ended'));
             }
-
             healthTick();
         }
 
@@ -2451,11 +2417,9 @@
             clearTimeout(AppState.pseudoSleepTimerId);
             AppState.pseudoSleepTimerId = null;
         }
-
         if (AppState.isPseudoSleeping) {
             wakePseudoSleep();
         }
-
         if (!AppState.isRecording) return;
 
         AppState.pseudoSleepTimerId = setTimeout(() => {
@@ -2464,12 +2428,10 @@
     }
 
     function enterPseudoSleep() {
-        if (!AppState.isRecording) return;
-        if (AppState.micLostAtMs) return;
+        if (!AppState.isRecording || AppState.micLostAtMs) return;
         AppState.isPseudoSleeping = true;
         updateSleepOverlayElapsedText();
         UI.pseudoSleepOverlay.classList.add('active');
-        console.log("🌑 疑似スリープ表示に入りました（実際のスリープはWake Lockで防止中）。");
     }
 
     function wakePseudoSleep() {
@@ -2511,13 +2473,11 @@
     });
 
     // ==========================================
-    // 🎚️ リアルタイム音声スペクトラム＆オーディオ・コア演出／無音検知
+    // 🎚️ リアルタイム音声スペクトラム＆無音検知
     // ==========================================
     function buildAudioProcessingChain(rawStream) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-            return null;
-        }
+        if (!AudioContextClass) return null;
 
         const audioContext = new AudioContextClass();
         const source = audioContext.createMediaStreamSource(rawStream);
@@ -2546,16 +2506,15 @@
         compressor.connect(analyser);
         source.connect(silenceAnalyser);
 
-        // 🌟 区間の区切り判定用：生の入力の音量（dB）を測る（約0.04秒ぶんの波形を見る）
         const levelAnalyser = audioContext.createAnalyser();
         levelAnalyser.fftSize = 2048;
         source.connect(levelAnalyser);
 
         return {
-            audioContext: audioContext,
-            analyser: analyser,
-            silenceAnalyser: silenceAnalyser,
-            levelAnalyser: levelAnalyser,
+            audioContext,
+            analyser,
+            silenceAnalyser,
+            levelAnalyser,
             nodes: { source, highpass, compressor, analyser, silenceAnalyser, levelAnalyser }
         };
     }
@@ -2583,9 +2542,7 @@
                     ctx.resume().catch(() => {});
                 }
             };
-        } catch (audioChainError) {
-            console.warn("⚠️ 波形表示チェーンの構築をスキップしました（録音には影響ありません）:", audioChainError);
-        }
+        } catch (e) { /* 無視 */ }
     }
 
     function startAudioVisualizer() {
@@ -2593,21 +2550,16 @@
         if (!AppState.analyserNode || !UI.audioVisualizer) return;
 
         const analyser = AppState.analyserNode;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
         const bars = UI.audioVisualizer.querySelectorAll('.vis-bar');
 
         const renderFrame = () => {
-            if (!AppState.isRecording) return;
-            if (AppState.analyserNode !== analyser) return;
+            if (!AppState.isRecording || AppState.analyserNode !== analyser) return;
             AppState.visualizerRafId = requestAnimationFrame(renderFrame);
 
-            if (AppState.isPseudoSleeping || document.visibilityState === 'hidden') {
-                return;
-            }
+            if (AppState.isPseudoSleeping || document.visibilityState === 'hidden') return;
 
             analyser.getByteFrequencyData(dataArray);
-
             let sum = 0;
             for (let i = 0; i < bars.length; i++) {
                 const val = dataArray[i + 1] || 0;
@@ -2616,13 +2568,10 @@
                 bars[i].style.height = `${barHeight.toFixed(1)}px`;
             }
 
-            const avgLevel = sum / (bars.length * 255); // 0.0 〜 1.0
-
+            const avgLevel = sum / (bars.length * 255);
             if (UI.voiceRingInner && UI.voiceRingOuter) {
-                const innerScale = 1 + avgLevel * 0.28;
-                const outerScale = 1 + avgLevel * 0.42;
-                UI.voiceRingInner.style.transform = `scale(${innerScale.toFixed(3)})`;
-                UI.voiceRingOuter.style.transform = `scale(${outerScale.toFixed(3)})`;
+                UI.voiceRingInner.style.transform = `scale(${(1 + avgLevel * 0.28).toFixed(3)})`;
+                UI.voiceRingOuter.style.transform = `scale(${(1 + avgLevel * 0.42).toFixed(3)})`;
             }
         };
 
@@ -2636,8 +2585,7 @@
         }
         AppState.currentVolumeLevel = 0;
         if (UI.audioVisualizer) {
-            const bars = UI.audioVisualizer.querySelectorAll('.vis-bar');
-            bars.forEach(bar => { bar.style.height = '5px'; });
+            UI.audioVisualizer.querySelectorAll('.vis-bar').forEach(bar => { bar.style.height = '5px'; });
         }
         if (UI.voiceRingInner) UI.voiceRingInner.style.transform = 'scale(1)';
         if (UI.voiceRingOuter) UI.voiceRingOuter.style.transform = 'scale(1)';
@@ -2649,9 +2597,7 @@
             try {
                 AppState.audioContext.onstatechange = null;
                 AppState.audioContext.close();
-            } catch (e) {
-                console.warn("⚠️ AudioContextのclose()に失敗しました（無視して続行）:", e);
-            }
+            } catch (e) { /* 無視 */ }
         }
         AppState.audioContext = null;
         AppState.audioProcessingNodes = null;
@@ -2663,31 +2609,26 @@
     }
 
     // ==========================================
-    // 🎙️ マイクの取得・監視・自動復旧 ＆ 💻 PC Web会議音声合成
+    // 🎙️ マイク取得・監視・自動復旧 ＆ Web会議合成
     // ==========================================
     function buildMicConstraints(deviceId) {
         const audio = {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
-            channelCount: { ideal: 1 } // モノラル固定（音声の明瞭化・軽量化）
+            channelCount: { ideal: 1 }
         };
-        if (deviceId) {
-            audio.deviceId = { exact: deviceId };
-        }
+        if (deviceId) audio.deviceId = { exact: deviceId };
         return { audio: audio };
     }
 
-    // 選択されたマイク（Bluetoothイヤホン等）が切断・未接続の場合は、自動で既定マイクへ切り替える
     async function acquireMicStream(timeoutMs) {
         const savedDeviceId = isDesktopBrowser()
             ? (localStorage.getItem("saved_mic_device_id") || "")
             : "";
 
         const tryGet = (constraints) => {
-            if (!timeoutMs) {
-                return navigator.mediaDevices.getUserMedia(constraints);
-            }
+            if (!timeoutMs) return navigator.mediaDevices.getUserMedia(constraints);
             return new Promise((resolve, reject) => {
                 let settled = false;
                 const timer = setTimeout(() => {
@@ -2698,7 +2639,7 @@
 
                 navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
                     if (settled) {
-                        stream.getTracks().forEach(track => track.stop());
+                        stream.getTracks().forEach(t => t.stop());
                         return;
                     }
                     settled = true;
@@ -2717,7 +2658,6 @@
             try {
                 return await tryGet(buildMicConstraints(savedDeviceId));
             } catch (err) {
-                console.warn("⚠️ 指定されたマイク（Bluetooth等）が利用できないため、既定のマイクへ自動切替します:", err);
                 localStorage.removeItem("saved_mic_device_id");
                 if (UI.micSelect) UI.micSelect.value = "";
                 logDiag("マイク自動切替（フォールバック）", [
@@ -2729,21 +2669,23 @@
         return await tryGet(buildMicConstraints(null));
     }
 
-    // 💻 Web会議モード：自分のマイク音声とPCの共有音声を合成する（サンプリングレート差も自動調整）
     async function buildWebMeetingMixedStream(micStream, displayStream) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-            return micStream;
-        }
+        if (!AudioContextClass) return micStream;
 
         const mixCtx = new AudioContextClass();
         if (mixCtx.state !== 'running') {
             await mixCtx.resume().catch(() => {});
         }
+        mixCtx.onstatechange = () => {
+            if (AppState.isRecording && AppState.mixAudioContext === mixCtx &&
+                mixCtx.state !== 'running' && mixCtx.state !== 'closed') {
+                mixCtx.resume().catch(() => {});
+            }
+        };
         AppState.mixAudioContext = mixCtx;
 
         const destination = mixCtx.createMediaStreamDestination();
-        // モノラル出力に統合
         destination.channelCount = 1;
 
         const micSource = mixCtx.createMediaStreamSource(micStream);
@@ -2761,7 +2703,6 @@
 
             const sysTrack = displayStream.getAudioTracks()[0];
             sysTrack.addEventListener('ended', () => {
-                console.warn("⚠️ 画面共有が終了しました。自分のマイク音声のみで録音を継続します。");
                 logDiag("Web会議の画面共有が終了", [
                     "共有が停止されたため、自分のマイク音声のみで録音を継続しています。"
                 ]);
@@ -2773,11 +2714,14 @@
 
     function teardownWebMeetingStreams() {
         if (AppState.displayStream) {
-            AppState.displayStream.getTracks().forEach(track => { try { track.stop(); } catch (e) { /* 無視 */ } });
+            AppState.displayStream.getTracks().forEach(t => { try { t.stop(); } catch (e) { /* 無視 */ } });
             AppState.displayStream = null;
         }
         if (AppState.mixAudioContext) {
-            try { AppState.mixAudioContext.close(); } catch (e) { /* 無視 */ }
+            try {
+                AppState.mixAudioContext.onstatechange = null;
+                AppState.mixAudioContext.close();
+            } catch (e) { /* 無視 */ }
             AppState.mixAudioContext = null;
         }
     }
@@ -2796,10 +2740,10 @@
 
     function stopMicTracks() {
         if (AppState.globalStream) {
-            AppState.globalStream.getTracks().forEach(track => { try { track.stop(); } catch (e) { /* 無視 */ } });
+            AppState.globalStream.getTracks().forEach(t => { try { t.stop(); } catch (e) { /* 無視 */ } });
         }
         if (AppState.rawMicStream && AppState.rawMicStream !== AppState.globalStream) {
-            AppState.rawMicStream.getTracks().forEach(track => { try { track.stop(); } catch (e) { /* 無視 */ } });
+            AppState.rawMicStream.getTracks().forEach(t => { try { t.stop(); } catch (e) { /* 無視 */ } });
         }
         AppState.globalStream = null;
         AppState.rawMicStream = null;
@@ -2810,24 +2754,16 @@
         if (!track) return;
 
         track.addEventListener('ended', () => {
-            if (track !== currentMicTrack()) return;
-            if (!AppState.isRecording) return;
-            console.warn("⚠️ マイクトラックが終了しました（OSにより停止された可能性があります）。");
+            if (track !== currentMicTrack() || !AppState.isRecording) return;
             recoverMicrophone('ended');
         });
-
         track.addEventListener('mute', () => {
-            if (track !== currentMicTrack()) return;
-            if (!AppState.isRecording) return;
-            console.warn("⚠️ マイクトラックがミュートされました。");
+            if (track !== currentMicTrack() || !AppState.isRecording) return;
             markMicLost('muted');
         });
-
         track.addEventListener('unmute', () => {
-            if (track !== currentMicTrack()) return;
-            if (!AppState.isRecording) return;
+            if (track !== currentMicTrack() || !AppState.isRecording) return;
             if (AppState.micLostAtMs && AppState.micLostReason === 'muted' && !AppState.isRecoveringMic) {
-                console.log("🎙️ マイクトラックのミュートが解除されました。");
                 markMicRecovered();
             }
         });
@@ -2840,7 +2776,6 @@
 
     function markMicLost(reason) {
         if (AppState.micLostAtMs) return;
-
         const now = Date.now();
         AppState.micLostAtMs = (reason === 'silent' && AppState.silentSinceMs) ? AppState.silentSinceMs : now;
         AppState.micLostReason = reason;
@@ -2854,14 +2789,11 @@
         if (AppState.isPseudoSleeping) wakePseudoSleep();
         updateRecordingStatusUI();
 
-        try {
-            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
-        } catch (e) { /* 無視 */ }
+        try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch (e) { /* 無視 */ }
     }
 
     function markMicRecovered() {
         if (!AppState.micLostAtMs) return;
-
         const now = Date.now();
         const gap = {
             fromSec: elapsedSecAt(AppState.micLostAtMs),
@@ -2898,9 +2830,7 @@
             if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "LIVE REC";
         } else {
             UI.statusText.classList.remove('mic-lost');
-            const gapNote = AppState.micGaps.length > 0
-                ? `（途切れ ${AppState.micGaps.length}回）`
-                : "";
+            const gapNote = AppState.micGaps.length > 0 ? `（途切れ ${AppState.micGaps.length}回）` : "";
             const webNote = AppState.isWebMeetingMode ? " [Web会議]" : "";
             UI.statusText.innerHTML = "録音中" + webNote + " — タップして終了" + gapNote;
             UI.statusText.style.color = "#ff7b6b";
@@ -2908,12 +2838,9 @@
         }
     }
 
-    // 🌟 マイクを取り直して、録音を再開する（Bluetooth切断時は自動で内蔵マイクへ切替）
     async function recoverMicrophone(reason) {
         if (!AppState.isRecording || AppState.isStopping) return;
-
         markMicLost(reason);
-
         if (AppState.isRecoveringMic) return;
 
         const visible = document.visibilityState === 'visible';
@@ -2925,31 +2852,30 @@
 
         AppState.isRecoveringMic = true;
         AppState.suppressAutoRestart = true;
-        console.log(`🎙️ マイクの取り直しを開始します（理由: ${reason}）`);
 
         try {
             await waitForRecorderToStop();
-            if (AppState.currentSegment) {
-                finalizeSegment(AppState.currentSegment);
-            }
+            if (AppState.currentSegment) finalizeSegment(AppState.currentSegment);
 
             stopMicTracks();
             teardownAudioProcessingChain();
             if (AppState.mixAudioContext) {
-                try { AppState.mixAudioContext.close(); } catch (e) { /* 無視 */ }
+                try {
+                    AppState.mixAudioContext.onstatechange = null;
+                    AppState.mixAudioContext.close();
+                } catch (e) { /* 無視 */ }
                 AppState.mixAudioContext = null;
             }
 
             const stream = await acquireMicStream(APP_CONFIG.MIC_REQUEST_TIMEOUT_MS);
 
             if (!AppState.isRecording || AppState.isStopping) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(t => t.stop());
                 return;
             }
 
             AppState.rawMicStream = stream;
 
-            // 画面共有がまだ生きている場合のみ再合成し、既に終了していればマイク単独録音へ安全に切り替える
             const liveDisplayAudio = AppState.displayStream &&
                 AppState.displayStream.getAudioTracks().some(t => t.readyState === 'live');
             if (AppState.isWebMeetingMode && liveDisplayAudio) {
@@ -2973,19 +2899,15 @@
             if (AppState.recorder && AppState.recorder.state === 'recording') {
                 AppState.silentSinceMs = 0;
                 markMicRecovered();
-                console.log("✅ マイクを取り直し、録音を再開しました。");
             }
         } catch (err) {
-            console.warn("⚠️ マイクの取り直しに失敗しました（画面復帰時・タップ時に再試行します）:", err);
+            console.warn("⚠️ マイクの取り直しに失敗しました:", err);
         } finally {
             AppState.isRecoveringMic = false;
             AppState.suppressAutoRestart = false;
         }
     }
 
-    // ==========================================
-    // 🩺 録音中の定期点検（1秒ごと）
-    // ==========================================
     function healthTick() {
         if (!AppState.isRecording || AppState.isStopping) return;
 
@@ -2993,6 +2915,9 @@
         const visible = document.visibilityState === 'visible';
 
         KeepAlive.ensureAudioPlaying();
+        if (AppState.mixAudioContext && AppState.mixAudioContext.state !== 'running') {
+            AppState.mixAudioContext.resume().catch(() => {});
+        }
 
         if (visible && AppState.wakeLockSupported && !AppState.wakeLock &&
             now - AppState.lastWakeLockTryAt > 10000) {
@@ -3033,7 +2958,6 @@
 
         checkDigitalSilence(now, visible);
 
-        // 🌟 小声ガイドの判定（可視状態かつマイク正常時のみ）
         if (visible && !AppState.micLostAtMs && AppState.volumeLevelValid) {
             if (AppState.currentVolumeLevel < 0.025) {
                 if (!AppState.lowVolumeSinceMs) {
@@ -3051,20 +2975,9 @@
             }
         }
 
-        // 🌟 区間の区切り（音量の定期測定側でも判定している。こちらは測定が止まった場合の保険）
         checkSegmentRotation(now);
     }
 
-    // ==========================================
-    // 🎚️ 音量の定期測定（0.2秒ごと）と、区間の区切り判定
-    //
-    // 🛠【2026-11-17変更】
-    //   従来は、音量を波形の描画処理の中で更新していた。描画は省電力表示
-    //   （疑似スリープ）の間は止まるため、会議中はほぼ常に音量が古い値のままになり、
-    //   「会話の切れ目で区切る」判定が働いていなかった。
-    //   音量の測定を描画から切り離し、専用のタイマーで測るようにした。
-    // ==========================================
-    // 波形表示と同じ尺度（0〜1）の音量。小声ガイドの判定に使う（従来と同じ計算）。
     function sampleVolumeLevel() {
         const analyser = AppState.analyserNode;
         const ctx = AppState.audioContext;
@@ -3084,7 +2997,6 @@
         return sum / (BANDS * 255);
     }
 
-    // 生の入力の音量をdB（0が最大、-100が無音）で測る
     function sampleLevelDb() {
         const analyser = AppState.levelAnalyserNode;
         const ctx = AppState.audioContext;
@@ -3106,20 +3018,17 @@
         return Math.max(-100, Math.min(0, db));
     }
 
-    // 🌟 「いま静かか（会話の切れ目か）」の判定。
-    //   マイクや部屋によって音量の水準が大きく違うため、固定のしきい値ではなく、
-    //   直近30秒の「静かなときの音量」と「話しているときの音量」から相対的に判定する。
     function isQuietLevel(db) {
         const history = AppState.levelHistory;
         history.push(db);
         if (history.length > APP_CONFIG.LEVEL_HISTORY_SIZE) history.shift();
 
         if (db <= APP_CONFIG.SPLIT_ABSOLUTE_SILENCE_DB) return true;
-        if (history.length < 25) return false; // 測り始めの5秒は判定しない
+        if (history.length < 25) return false;
 
         const sorted = history.slice().sort((a, b) => a - b);
-        const floorDb = sorted[Math.floor(sorted.length * 0.10)]; // 静かなときの音量
-        const peakDb = sorted[Math.floor(sorted.length * 0.95)];  // 話しているときの音量
+        const floorDb = sorted[Math.floor(sorted.length * 0.10)];
+        const peakDb = sorted[Math.floor(sorted.length * 0.95)];
         const range = peakDb - floorDb;
         if (range < APP_CONFIG.SPLIT_MIN_DYNAMIC_RANGE_DB) return false;
 
@@ -3128,17 +3037,12 @@
 
     function levelSamplerTick() {
         if (!AppState.isRecording || AppState.isStopping) return;
-
         const now = Date.now();
-
         const level = sampleVolumeLevel();
-        if (level !== null) {
-            AppState.currentVolumeLevel = level;
-        }
+        if (level !== null) AppState.currentVolumeLevel = level;
 
         const db = sampleLevelDb();
         if (db === null || level === null) {
-            // 音量を測れない間は「静か」とは見なさない（時間による区切りだけが働く）
             AppState.volumeLevelValid = false;
             AppState.splitQuietSinceMs = 0;
         } else {
@@ -3150,7 +3054,6 @@
                 AppState.splitQuietSinceMs = 0;
             }
         }
-
         checkSegmentRotation(now);
     }
 
@@ -3167,8 +3070,6 @@
         AppState.volumeLevelValid = false;
     }
 
-    // 🌟 区間の区切り：4分45秒を過ぎたら会話の切れ目（0.8秒以上の静かな状態）を探し、
-    //   見つからなければ5分30秒で区切る。画面が裏にある間は保留し、最長15分で区切る。
     function checkSegmentRotation(now) {
         if (!AppState.isRecording || AppState.isStopping || AppState.isRecoveringMic) return;
 
@@ -3192,20 +3093,13 @@
 
         const byQuiet = softSplit && !mustRotateHidden && !mustRotateHard;
         seg.rotationRequested = true;
-        if (byQuiet) {
-            AppState.splitStats.quiet++;
-        } else {
-            AppState.splitStats.forced++;
-        }
-        console.log(
-            `✂️ 区間${seg.index + 1}を区切ります（${Math.round(age / 1000)}秒、` +
-            `${byQuiet ? "会話の切れ目" : "時間による区切り"}）。`
-        );
+        if (byQuiet) AppState.splitStats.quiet++;
+        else AppState.splitStats.forced++;
+
         try {
             recorder.stop();
         } catch (e) {
             seg.rotationRequested = false;
-            console.warn("⚠️ 区間の区切りに失敗しました:", e);
         }
     }
 
@@ -3260,13 +3154,14 @@
     async function handleRecordButtonClick() {
         if (!window.appController || !window.appController.gasUrl) {
             alert("初回設定が必要です！\n右上のメニューの「設定」から、GASウェブアプリのURLを登録してください。");
-            if(UI.settingsPanel.style.display !== 'block') UI.settingsBtn.click();
+            if (UI.settingsPanel.style.display !== 'block') UI.settingsBtn.click();
             return;
         }
 
-        if (AppState.isStopping) {
-            console.warn("⚠️ 停止処理を実行中です。しばらくお待ちください。");
-            return;
+        if (AppState.isStopping) return;
+
+        if (AppState.nameSpeechRecognition) {
+            try { AppState.nameSpeechRecognition.abort(); } catch (e) { /* 無視 */ }
         }
 
         if (!AppState.isRecording) {
@@ -3283,14 +3178,13 @@
         try {
             KeepAlive.startSilentAudio();
 
-            // 💻 Web会議モードがONの場合：先に画面/タブ共有ダイアログを表示する
             if (wantWebMeeting) {
                 if (!navigator.mediaDevices || typeof navigator.mediaDevices.getDisplayMedia !== "function") {
                     alert("お使いのブラウザはWeb会議の音声共有に対応していません。通常のマイク録音を開始します。");
                 } else {
                     try {
                         displayStream = await navigator.mediaDevices.getDisplayMedia({
-                            video: true,
+                            video: { width: { ideal: 1 }, height: { ideal: 1 }, frameRate: { ideal: 1 } },
                             audio: true
                         });
                     } catch (dispErr) {
@@ -3314,11 +3208,9 @@
                 }
             }
 
-            // マイク取得（モノラル固定＋Bluetooth未接続時は既定マイクへ自動切替）
             const stream = await acquireMicStream(null);
             AppState.rawMicStream = stream;
             attachTrackWatchers(stream);
-
             refreshMicDeviceList();
 
             if (displayStream && displayStream.getAudioTracks().length > 0) {
@@ -3363,7 +3255,6 @@
             if (UI.micSelect) UI.micSelect.disabled = true;
 
             UI.dotsGrid.innerHTML = '';
-
             UI.mainRecordBtn.classList.add('recording');
             UI.mainRecordBtn.innerHTML = SVG_ICONS.stop;
             UI.progressContainer.style.display = "none";
@@ -3394,9 +3285,7 @@
             }
 
         } catch (err) {
-            if (displayStream) {
-                displayStream.getTracks().forEach(t => t.stop());
-            }
+            if (displayStream) displayStream.getTracks().forEach(t => t.stop());
             AppState.isRecording = false;
             AppState.isSegmentCycleActive = false;
             AppState.isWebMeetingMode = false;
@@ -3418,18 +3307,13 @@
             if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "READY";
 
             alert("録音を開始できませんでした。マイクのアクセスが許可されているか、ブラウザの設定を確認してください。");
-            console.error("Audio Error:", err);
         }
     }
 
     function startNewSegment() {
-        if (!AppState.isSegmentCycleActive) {
-            console.log("🛑 セグメントサイクルが終了しているため、新しいセグメントは開始しません。");
-            return;
-        }
+        if (!AppState.isSegmentCycleActive) return;
 
         if (!isMicStreamLive()) {
-            console.warn("⚠️ マイクが有効でないため、新しい区間を開始できません。");
             markMicLost('ended');
             return;
         }
@@ -3446,7 +3330,6 @@
             try {
                 recorder = new MediaRecorder(AppState.globalStream, mimeType ? { mimeType: mimeType } : {});
             } catch (e2) {
-                console.error("❌ MediaRecorderの作成に失敗しました:", e2);
                 markMicLost('start-failed');
                 return;
             }
@@ -3471,7 +3354,6 @@
         };
 
         recorder.onstop = () => {
-            console.log(`🛑 区間${seg.index + 1}の録音を停止しました。パーツ数: ${seg.parts.length}`);
             finalizeSegment(seg);
 
             if (typeof AppState._onRecorderStopped === 'function') {
@@ -3492,7 +3374,6 @@
         };
 
         recorder.onerror = (event) => {
-            console.error("❌ MediaRecorderでエラーが発生しました:", event.error);
             logDiag("録音エンジンのエラー", [
                 `内容: ${event.error ? (event.error.name + " " + event.error.message) : "(不明)"}`
             ]);
@@ -3501,7 +3382,6 @@
         try {
             recorder.start(1000);
         } catch (e) {
-            console.error("❌ 録音の開始に失敗しました:", e);
             markMicLost('start-failed');
             return;
         }
@@ -3532,7 +3412,6 @@
             seg.parts = [];
             handleSegmentComplete(blob, seg);
         } else {
-            console.warn(`⚠️ 区間${seg.index + 1}: データが空のため、送信をスキップします。`);
             SegmentStore.deleteSegment(seg.sessionId, seg.index);
         }
     }
@@ -3578,7 +3457,6 @@
             if (driveOk) {
                 SegmentStore.deleteSegment(sessionId, segmentIndex);
             } else {
-                console.warn(`⚠️ 区間${segmentIndex + 1}: Drive保存に失敗したため、自動再送キューに保持します（端末内にも保存済み）。`);
                 AppState.pendingRetrySegments.push({
                     base64,
                     mimeType,
@@ -3588,8 +3466,7 @@
                     sessionId
                 });
             }
-        }).catch(err => {
-            console.error("❌ セグメント処理中に予期しないエラー:", err);
+        }).catch(() => {
             const dotEl = document.getElementById(`dot-${segmentIndex}`);
             if (dotEl) {
                 dotEl.classList.remove('processing');
@@ -3605,7 +3482,6 @@
         const segmentsToRetry = AppState.pendingRetrySegments.splice(0);
         segmentsToRetry.forEach(item => {
             AppState.audioSendQueue = AppState.audioSendQueue.then(async () => {
-                console.log(`🔄 区間${item.segmentIndex + 1}のDrive保存を再試行します...`);
                 const currentMeetingName = UI.meetingNameInput.value.trim() || item.meetingName || "無題の会議";
                 const currentTemplateType = UI.templateSelect.value || item.templateType || "汎用議事録";
 
@@ -3628,12 +3504,10 @@
                             window.appController.audioAppendFailures.filter(f => f.chunkIndex !== item.segmentIndex);
                     }
                     SegmentStore.deleteSegment(item.sessionId, item.segmentIndex);
-                    console.log(`✅ 区間${item.segmentIndex + 1}の再送に成功しました！`);
                 } else {
                     AppState.pendingRetrySegments.push(item);
                 }
-            }).catch(err => {
-                console.error("❌ 再送処理中に予期しないエラー:", err);
+            }).catch(() => {
                 AppState.pendingRetrySegments.push(item);
             });
         });
@@ -3660,7 +3534,6 @@
         }
         const micGaps = AppState.micGaps.slice();
 
-        // 🌟 途切れた時間帯を、確定時にGASへ送る注記として控えておく
         const stoppingSessionId = window.appController ? window.appController.state.sessionId : "";
         const recordingNotes = { gaps: micGaps, abnormalEnd: false };
         if (stoppingSessionId) {
@@ -3670,7 +3543,6 @@
         stopElapsedTimeDisplay();
         stopPseudoSleepCycle();
         KeepAlive.stop();
-
         document.body.classList.remove('recording-active');
 
         UI.mainRecordBtn.disabled = true;
@@ -3709,13 +3581,10 @@
                 `時間で区切った回数: ${AppState.splitStats.forced}`
             ]);
 
-            // 🌟【2026-11-17変更】まだ送信できていない区間がある場合は、録音を確定しない。
-            //   ここで確定すると、欠けたまま議事録が作られ、後から届いた音声は反映されない。
-            //   未送信分は端末内に保存されているので、送信できた時点で自動的に確定する
-            //   （recoverLeftoverSegments が担当。通信の復帰時・1分ごと・次回起動時に試す）。
             const unsentCount = AppState.pendingRetrySegments.length;
             if (unsentCount > 0 && SegmentStore.available) {
                 AppState.pendingRetrySegments = [];
+                window.appController.markPendingFinalize(meetingName, templateType);
                 UI.progressContainer.style.display = "block";
                 UI.progressTitle.innerHTML = "⚠️ 未送信の音声があります（送信でき次第、自動で確定します）";
                 UI.statusText.innerHTML = "未送信の音声があります";
@@ -3739,7 +3608,6 @@
             try {
                 audioResult = await window.appController.finalizeAudioAndGetResult(meetingName, templateType, recordingNotes);
             } catch (audioError) {
-                console.error("❌ 音声確定処理が失敗しました:", audioError);
                 UI.progressTitle.innerHTML = "⚠️ 音声データの確認に失敗しました";
                 UI.statusText.innerHTML = "エラー発生（手動再開を確認してください）";
                 UI.statusText.style.color = "#fa5252";
@@ -3747,8 +3615,7 @@
                 alert(
                     "音声データの確認に失敗しました。\n" +
                     "録音した音声は、この端末内と、ドライブの「レコーダー/音声データ」フォルダに残っています。\n" +
-                    "通信できる状態でこのアプリを開き直すと、未送信分は自動で送信されます。" +
-                    "または「手動再開」からお試しください。\n\n" +
+                    "通信できる状態でこのアプリを開き直すと自動で確定されます。または「手動再開」からお試しください。\n\n" +
                     "詳細: " + audioError.message
                 );
                 return;
@@ -3761,8 +3628,7 @@
                 if (UI.headerLiveBadgeText) UI.headerLiveBadgeText.textContent = "ERROR";
                 alert(
                     "サーバー側に保存された音声データが見つかりませんでした。\n" +
-                    "録音した音声がこの端末内に残っている場合は、通信できる状態でこのアプリを" +
-                    "開き直すと、自動で送信されます。"
+                    "録音した音声がこの端末内に残っている場合は、通信できる状態でこのアプリを開き直すと自動で送信されます。"
                 );
                 return;
             }
@@ -3779,15 +3645,12 @@
                     .sort((a, b) => a - b);
                 alert(
                     "⚠️ 録音中に、一部の音声（" + failedIndexes.join(", ") + "番目の区間）の保存に失敗しました。\n" +
-                    "その区間は、今回の文字起こし・議事録に反映されない可能性があります。\n" +
                     "音声はこの端末内に残っており、通信できる状態になると自動で再送されます。"
                 );
             }
 
             window.appController.clearState();
-            if (stoppingSessionId) {
-                removeRecordingNotesLocal(stoppingSessionId);
-            }
+            if (stoppingSessionId) removeRecordingNotesLocal(stoppingSessionId);
 
             let gapMessage = "";
             if (micGaps.length > 0) {
@@ -3812,7 +3675,7 @@
             );
 
         } catch (err) {
-            alert("エラーが発生しました: " + err.message + "\n（音声データは既に確定保存されている可能性があります）");
+            alert("エラーが発生しました: " + err.message);
             UI.statusText.innerHTML = "エラー発生（手動再開を確認してください）";
             UI.statusText.style.color = "#fa5252";
         } finally {
@@ -3854,7 +3717,6 @@
             try {
                 AppState.recorder.stop();
             } catch (e) {
-                console.warn("⚠️ 録音エンジンの停止に失敗しました（無視して続行）:", e);
                 finalize();
                 return;
             }
@@ -3863,9 +3725,6 @@
         });
     }
 
-    // ==========================================
-    // ⏱️ デジタルタイムカウンター表示（1秒ごとの定期点検も兼ねる）
-    // ==========================================
     function startElapsedTimeDisplay() {
         startLevelSampler();
         updateElapsedTimeText();
