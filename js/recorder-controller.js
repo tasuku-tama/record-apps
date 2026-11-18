@@ -302,7 +302,8 @@ class RecorderController {
                         audioUrl: response.audioUrl || null,
                         audioFolderId: response.audioFolderId || null,
                         fileCount: response.fileCount,
-                        alreadyFinalized: !!response.alreadyFinalized
+                        alreadyFinalized: !!response.alreadyFinalized,
+                        configError: response.configError || ""
                     };
 
                 } catch (error) {
