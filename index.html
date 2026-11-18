@@ -1277,7 +1277,7 @@
     </div>
 </div>
 
-<script src="js/recorder-controller.js?v=6.2"
+<script src="js/recorder-controller.js?v=6.3"
     onload="console.log('✅ recorder-controller.js 読み込み成功');"
     onerror="console.error('❌ recorder-controller.js 読み込み失敗:', this.src);"
 ></script>
@@ -2135,13 +2135,35 @@
         alert(`${count}件の音声ファイルをダウンロードしました。`);
     }
 
+    function buildConfigErrorHtml(configError) {
+        if (!configError) return "";
+        return `<div style="margin-bottom: 10px; padding: 10px 12px; border-radius: 10px; ` +
+            `background: rgba(252, 232, 230, 0.95); border: 1px solid #f28b82; color: #a50e0e; font-size: 12.5px; line-height: 1.6;">` +
+            `⚠️ <b>AIの設定に問題があるため、文字起こし・議事録の作成を保留しています。</b><br>` +
+            `${escapeHtml(configError)}<br>` +
+            `管理者がGASのスクリプトプロパティを修正すると、自動で処理が再開されます（音声データは保存済みです）。</div>`;
+    }
+
     function renderRecoveryStatus(statusResult) {
         const state = window.appController.state;
         const meetingName = UI.meetingNameInput.value.trim() || state.meetingName || "無題の会議";
         const templateType = UI.templateSelect.value || state.templateType || "汎用議事録";
+        const configErrorHtml = buildConfigErrorHtml(statusResult.configError);
+
+        if (statusResult.status === "audio_saved" && statusResult.excludedByFailures) {
+            UI.recoveryStatusText.innerHTML =
+                configErrorHtml +
+                `⚠️ <b>このセッションは、処理の失敗が続いたため自動処理を停止しています。</b>` +
+                `（フォルダ名: ${escapeHtml(statusResult.audioFileName)}、ファイル数: ${escapeHtml(statusResult.fileCount)}件）<br>` +
+                `音声データ自体は失われていません。<br>` +
+                `管理者がGASエディタで関数「resetFailedSessions」を実行すると、処理を再開できます。` +
+                `原因はGASの「実行数」のログ、またはこの画面の「診断情報」で確認できます。`;
+            return;
+        }
 
         if (statusResult.status === "audio_saved") {
             UI.recoveryStatusText.innerHTML =
+                configErrorHtml +
                 `✅ <b>音声データは専用フォルダに保存済みです。</b>` +
                 `（フォルダ名: ${escapeHtml(statusResult.audioFileName)}、ファイル数: ${escapeHtml(statusResult.fileCount)}件）<br>` +
                 `音声データ自体は失われていません。<br>` +
@@ -2153,6 +2175,7 @@
             );
         } else {
             UI.recoveryStatusText.innerHTML =
+                configErrorHtml +
                 "⚠️ サーバー側にも、このセッションに対応する録音データが見つかりませんでした。<br>" +
                 "お手数ですが、Googleドライブの「レコーダー/音声データ」フォルダを直接ご確認ください。";
         }
@@ -2183,6 +2206,7 @@
             window.appController.clearState();
 
             UI.recoveryStatusText.innerHTML =
+                buildConfigErrorHtml(result && result.configError) +
                 "音声データの確認が完了しました。<br>" +
                 "文字起こし・議事録の生成は、バックグラウンドで自動的に処理されます。" +
                 "数分後に、Googleドライブの「レコーダー/議事録等」フォルダをご確認ください。";
@@ -3665,14 +3689,25 @@
                 logDiag("録音の途切れ（まとめ）", gapLines);
             }
 
-            alert(
-                "🎉 音声データの確認が完了しました！\n\n" +
-                "文字起こし・議事録の生成は、これからバックグラウンドで自動的に" +
-                "処理されます。このアプリを閉じていただいて構いません。\n\n" +
-                "数分後、Googleドライブの「レコーダー/議事録等」フォルダに" +
-                "議事録が自動的に作成されますので、そちらをご確認ください。" +
-                gapMessage
-            );
+            if (audioResult && audioResult.configError) {
+                logDiag("AIの設定エラー（処理を保留中）", [`内容: ${audioResult.configError}`]);
+                alert(
+                    "✅ 音声データは保存されました。\n\n" +
+                    "⚠️ ただし、AIの設定に問題があるため、文字起こし・議事録の作成を保留しています。\n" +
+                    audioResult.configError + "\n\n" +
+                    "管理者がGASのスクリプトプロパティを修正すると、自動で処理が再開されます。" +
+                    gapMessage
+                );
+            } else {
+                alert(
+                    "🎉 音声データの確認が完了しました！\n\n" +
+                    "文字起こし・議事録の生成は、これからバックグラウンドで自動的に" +
+                    "処理されます。このアプリを閉じていただいて構いません。\n\n" +
+                    "数分後、Googleドライブの「レコーダー/議事録等」フォルダに" +
+                    "議事録が自動的に作成されますので、そちらをご確認ください。" +
+                    gapMessage
+                );
+            }
 
         } catch (err) {
             alert("エラーが発生しました: " + err.message);
